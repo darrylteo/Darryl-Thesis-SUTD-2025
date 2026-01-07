@@ -1,0 +1,495 @@
+\chapter{Discrete Event Simulation}
+\label{chap6}
+The Air Traffic Flow Management (ATFM) problem may also be solved via a rule-based modeling approach, which solves the problem in a more conventional and predictable manner. Rule-based modeling can be described as, conditioned on the current state, and possibly previous states, the system transitions to the next state according to a predefined set of rules. We may also think of the change of state being caused by the model's choice of action. 
+
+The rule set for a given event may be deterministic or probabilistic. An example of a deterministic rule set may be to always take one step forward at each time step, whereas a probabilistic rule set may be to take one step forward with a 0.4 probability, and one step backward otherwise. Rule-based simulations are particularly effective when the analyst is able to distill the simulation model into a rule set that is significantly more compact. This simplicity allows the analyst to determine the quality of solutions and identify bottlenecks based on the current rule set. The analyst would also then be able to update the rule set as required or to understand the impact of various rule sets, commonly known as what-if analysis. Rule-based models include Markov chains, Discrete Event Simulation, and differential equations. Some fields of which rule-based modeling is applied to are queuing theory \parencite{Forbus2022}, signal transduction of biological cells \parencite{Sekar2012}, games \parencite{Finnsson2008}, and healthcare \parencite{Kalashnikov1994}.
+
+%--------------------------------------------------------
+\section{Discrete Event Simulation}
+A simulation is a representation of a system that is of interest. Rather than waiting for the outcome of a system in the real-world, which may take months or years and may be operationally expensive or dangerous, software simulations can software-based simulations enable controlled experimentation and stress testing. These simulations can evaluate a wide range of scenarios and outcomes, often in a fraction of the time required for real-world observation. If the relationships between components in our system is simple enough, we may be able to use mathematical tools to solve it, such as linear programming and probability theory. However, when the system is too complex, or when visualizing the evolution of the system is necessary, simulations are preferred.
+
+To illustrate a practical use case of simulation, consider the decision making process for a proposed new runway at an airport. One approach would be to construct the runway and evaluate its effectiveness post-implementation. However, if the anticipated benefits fail to justify the cost, this approach becomes highly inefficient and wasteful, and deconstruction might even be necessary, compounding the costs. Simulation offers a more practical alternative by enabling a virtual comparison of airport operations with and without the new runway. For example, the simulation can estimate the number of flights that would utilize the runway, the reduction in arrival and departure delays, and the increase in airport throughput measured in flights per hour. With these insights, stakeholders can make more informed decisions regarding the project's feasibility without incurring the financial and operational risks of actual construction.
+
+Simulation is one of the most widely adopted tool in operations research and management science, taking second place out of 13 research techniques \parencite{Gupta1997}. Simulation has wide-ranging applications, some of these are \parencite{Law2015}:
+\begin{itemize}
+    \item Designing and analyzing manufacturing systems;
+    \item Designing and operating transportation systems such as airports, freeways, ports, and subways;
+    \item Evaluating designs for service organizations such as call centers, fast-food restaurants, hospitals, and post offices;
+    \item Analyzing supply chains;
+    \item Determining ordering policies for an inventory system;
+\end{itemize}
+
+Simulation may be conducted on both discrete and continuous events. Both models may be used on the same problem, with the difference lying in the system modeling and assumptions, and the level of granularity required of the analysis. A discrete event simulation would model one event happening after another, at discrete points in time, on the assumption that the time between events follow a fixed pattern or are not of interest. In contrast, a continuous event simulation would precisely simulate events at every point in time, assuming that state variables change continuously with respect to time. Let us take a look at the problem of scheduling flights. If we are only concerned with scheduling and analyzing TTOs at nodes, and the movement of an aircraft between nodes is assumed to be at a predetermined speed and trajectory, a discrete event simulation would be a suitable choice. Such a model would fundamentally require only cycling through events of assigning a TTO at each node, while ensuring a minimum required separation between TTOs at every node. This is because the TTOs at nodes, are not affected by the event of a flight traversing from one node to the next, under the assumption of a predetermined speed and trajectory. On the other hand, if at each moment in the flight, the trajectory is of interest, say we want the velocity of each aircraft at any point in time, a continuous event simulator would be more appropriate as the discrete event simulator described prior does not simulate the traversal from one node to the next at each point in time.
+
+%--------------------------------------------------------
+\section{Discrete Event Simulation Applied to the Complete Decentralized Air Traffic Flow Management Problem}
+
+Let $t_{now}$ denote the current time. Let $\mathcal{F}$ denote the set of flights scheduled to arrive, depart, or overfly the air traffic region of interest in the course of a day or the period of interest. Let $\mathcal{F}_A$ denote the set of active flights at the current time.  Flights from $\mathcal{F}$ are added to $\mathcal{F}_A$ if their scheduled departure time is less than $t_{now}+H$ for some departure planning horizon, $H$. Only flights in $\mathcal{F}_A$ are visible to air traffic planners in the region. 
+
+Let $\mathcal{N}$ denote the set of all airports and waypoints in the region of interest, together with supplementary nodes representing airports external to the region but referenced in the flight schedule. Each node in  $\mathcal{N}$ represents either an airport or a waypoint. Let $\mathcal{A}$ denote the set of arcs connecting these nodes and representing the routes which describe the air traffic network. For each flight $f\in\mathcal{F}$, let $P_f$ denote the shortest path through the $(\mathcal{N},\mathcal{A})$ network from flight origin airport to flight destination airport. That is, $P_f$ is an ordered sequence $(n_1,n_2,\cdots,n_{|P_f|})$ of nodes $n_j\in\mathcal{N}$ such that $n_1$ is the origin airport, $n_{|P_f|}$ is the destination airport, and each leg $(n_{j-1},n_j)$ is an arc in $\mathcal{A}$, for $j=2,3,\cdots,|P_f|$. In this study we do not consider en-route changes to the flight paths since information-sharing about such changes is not a feature of either the R0 or the R1 release of FF-ICE. Hence, we assume the flight path $P_f$ for each flight remains unchanged throughout the simulation.
+
+Each node $j=1,2,\cdots,|P_f|$, marks the \textit{end} of a flight leg. The first leg, $j=1$, can be thought of as the trip from the departure gate to the runway of the origin airport. We assume that the leg from $n_{j-1}$ to $n_j$ has a preferred duration ${\widetilde{d}}_{fj}$ particular to the flight $f$. The preferred duration of the first leg is zero (${\widetilde{d}}_{f1}=0$). In our simulation, we compute an ideal time profile for each trajectory as a whole from origin to destination with reference to the rate of ascent, cruising altitude, cruising speed, and rate of descent specific to the equipment type.  We compute an upper time profile (resp. lower time profile) by scaling the cruising speed down by 10\% (resp. up by 5\%).  For any leg, we use these three profiles to derive the preferred duration ${\widetilde{d}}_{fj}$ as well as maximum, ${\overline{d}}_{fj}$, and minimum, ${\underline{d}}_{fj}$, leg durations. Appendix \ref{AppendixB} documents the calculations.
+
+For any flight $f\in\mathcal{F_A}$, let ${\widetilde{t}}_{f1}$ denote the scheduled departure time for the flight and let ${\widetilde{t}}_{fj}$ denote the scheduled TTO at each subsequent node, for $j=2,3,\cdots,|P_f|$, according to the recursion:
+
+\begin{equation*}
+{\widetilde{t}}_{fj}={\widetilde{t}}_{f,j-1}+{\widetilde{d}}_{fj}.
+\end{equation*}
+
+We refer to the scheduled TTO's for a flight as \textit{Release R0 Target Time Over} (R0TTO) because they represent trajectories which can be deduced from pre-departure flight plans filed under release R0.
+
+For any flight $f\in\mathcal{F}$ and node $n_j$ for $j\in\{1,2,\cdots,|P_f|\}$, let $r(n_j)$ denote the FIR responsible for flights over that node. Let $t_{fj}$ denote the TTO for flight $f$ at that node as computed under the visibility rules for FIR $r(n_j)$.  
+
+Let $\prescript{}{j}t_f$ denote the TTO of the node previous to $n_j$ in the flight plan for flight $f$, again, under the visibility rules for FIR $r(n_j)$. For the first leg in the flight plan, $j=1$, we take its previous TTO, $\prescript{}{1}t_f$, to be the earliest departure time of the flight. This is the scheduled departure time, ${\widetilde{t}}_{f1}$, but potentially updated by mixing with a CTOT. For subsequent legs, $j>1$, we set $\prescript{}{j}t_f=t_{f,j-1}$ if flight $f$ is an R1-level flight (both origin and destination belong to R1-level FIRs) or if the previous node belongs to the same FIR (i.e., $r(n_{j-1})=r(n_j)$) or if the previous leg has completed ($t_{f,j-1}<t_{now}$). Otherwise, we set $\prescript{}{j}t_f={\widetilde{t}}_{f,j-1}\lor t_{now}$. That is, if there is no information sharing for this flight and it has not yet entered FIR $r(n_j)$, then the previous TTO is set equal to the corresponding R0TTO or $t_{now}$, whichever is greater.
+
+We mark a leg $j$ as \textit{completed} as soon as $t_{fj}\leq t_{now}$. The flight is completed as soon as the last leg is completed: $t_{f,|P_f|}\leq t_{now}$. The TTOs of completed legs are not subject to change. All other TTOs may be adjusted to satisfy timing constraints. However, to ensure an active flight satisfies the minimum required separation from any completed flight, we will archive a completed flight only after all flight legs are completed, and the time now, is greater than the TTO of all flight legs belonging to this flight, plus its minimum required separation at each resource:
+\begin{equation}
+\label{eq:archive}
+    t_{now} > t_{fj} + \delta_{fj} \quad \forall j\in P_f.
+\end{equation}
+We add an archive operation as to remove a flight from active set $\mathcal{F}_A$ and place it in a completed set, denoted by $\mathcal{F}_C$. Note here that the DES only interacts with flights in the active set $\mathcal{F}_A$, so when the condition in Equation \ref{eq:archive} is satisfied, we have that all flight legs of flight $f$ obey the minimum separation requirements between any flight leg after $t_{now}$, and therefore can be removed from the active set while preserving the conflict-free nature of the processed flights.
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Timing Constraints}
+A flight plan is said to be \textit{consistent} if $\prescript{}{j}t_f=t_{f,j-1}$ and \textit{sequence-feasible} if $t_{fj}\geq  \prescript{}{j}t_f + {\widetilde{d}}_{fj}$ for all $j\in\{1,2,\cdots,|P_f|\}$. Thus, because a previous TTO may only be an R0TTO time, a sequence-feasible flight may not be consistent across FIR boundaries unless the flight has actually entered the FIR of interest or it is an R1-level flight. Furthermore, for legs within an FIR, we assume no planned speed-up is possible but there is no upper limit to the amount of delay imposed. If  $t_{fj} -  \prescript{}{j}t_f >{\widetilde{d}}_{fj}$, the difference can be composed of a leg slowdown, up to a maximum of ${\overline{d}}_{fj}$, and a hold time. Although it is not necessary in the discrete event simulation model, we can extract the hold time, $h_{fj}$, and the travel duration, $d_{fj}$, associated with leg $j$ of a flight plan using the formulae:
+
+\begin{align*}
+d_{fj}&=\min\{t_{fj}-  \prescript{}{j}t_f ,{\widetilde{d}}_{fj}\},\\
+h_{fj}&=t_{fj}-  \prescript{}{j}t_f -d_{fj}.
+\end{align*}
+
+Each leg in a flight plan must be assigned to a specific resource channel for the node at the end of that leg. Waypoints have only one resource channel but airports have three. Let $c=0,1,2,3$ represent a channel assignment of waypoint, arrival, departure, and mixed, respectively. Let $c_{fj}$ denote the channel assignment for leg $j$ of flight $f$. Departures take place on either a departure or a mixed channel, so $c_{f1}\in\{2,3\}$. Arrivals take place on either an arrival or a mixed channel, so $c_{f,|P_f|}\in\{1,3\}$. En route traversals take place at waypoints, so $c_{fj}=0$ for $j=2,3,\cdots,|P_f|-1$.
+
+Airport capacity envelopes and waypoint capacities can change over the course of the simulation so let $\delta_{fj}$ denote the separation time required on channel $c_{fj}$ as of time $t_{now}$ if leg $j$ is not completed. Otherwise, it will be the separation time as of the time at which it was completed. The interval $\big[t_{fj},t_{fj}+\delta_{fj}\big]$ represents a block of time reserved on channel $c_{fj}$ for flight $f$. For a visualization of these reservation blocks, we refer the reader to Figure \ref{fig:appanalyst6} in the appendices. Each flight can have at most one such reservation for any node so let $b(n,c,f)=[t_1,t_2]$ denote the block of time reserved at node $n\in\mathcal{N}$ on channel $c\in\{0,1,2,3\}$ for flight $f\in\mathcal{F}_A\cup\mathcal{F}_C$ if it exists. A set of flight plans for completed and active flights is said to be \textit{resource-feasible} if all such blocks on the same resource $(n,c)$ are non-overlapping for all resources with capacity constraints. Note that flight plans can be resource-feasible from the viewpoint of each FIR but sequence-inconsistent because of visibility restrictions. Only flights in $\mathcal{F}_C$ are guaranteed to be consistent, sequence-feasible and resource-feasible.
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Frozen Legs and Frozen Blocks}
+Once a leg $j$ is completed, its TTO, $t_{fj}$, channel, $c_{fj}$, channel separation time, $\delta_{fj}$, and reservation block $b(n_j,c_{fj},f)=\big[t_{fj},t_{fj}+\delta_{fj}\big]$ become immutable and its previous TTO, $\prescript{}{j}t_f$, becomes fixed at $t_{f,j-1}$. But if $t_{fj}<t_{now}\leq t_{f,j+1}$, that implies the aircraft is somewhere between node $n_j$ and $n_{j+1}$ on the flight plan. Since arrival at node $n_{j+1}$ may be imminent, there is presumably less flexibility to adjust TTO $t_{f,j+1}$. Accordingly, we declare such a leg to be \textit{frozen} and restrict the ability to modify it. We cannot make it immutable in all dimensions because the act of declaring leg $j$ completed may immediately result in a resource-infeasible set of flight plans. We give an example of when a conflict may arise if a frozen leg is immutable. When a R0-level flight completes a leg at the boundary of an FIR, the next leg immediately becomes visible in the next FIR. In particular, $t_{f,j+1}$ was previously dependent on $\prescript{}{j}t_f$, but now, since the previous leg is visible, we set $t_{f,j+1}=t_{fj}+ {\widetilde{d}}_{fj+1}$. This may result in shifting the corresponding reservation block $b(n_{j+1},c_{f,j+1},f)$ into conflict with another frozen reservation block, leading to an irresolvable conflict if frozen blocks were strictly immutable. To resolve such conflicts while maintaining the current solution as far as possible, we fix the channel $c_{f,j+1}$, channel separation time, $\delta_{f,j+1}$, and previous TTO $\prescript{}{j+1}t_f=t_{fj}$ of each frozen leg and run a discrete event First-Come-First-Served algorithm on the frozen legs to update their TTOs, $t_{fj}$, to restore resource-feasibility. Once the frozen times have been reconciled into a resource-feasible state (ignoring non-frozen legs) we collect the reservation blocks for all completed and frozen legs into a collection of frozen blocks. All non-frozen legs will subsequently be re-scheduled by the DES to achieve a resource-feasible set of flight plans.
+
+A consequence of freezing flight legs between node $n_j$ and $n_{j+1}$ on the flight plan is that the a frozen flight leg overrides any priority scheduling of flights, where the impact is observed primarily at the airports, given that they are the most congested resource. This happens when flights arrive from different waypoints, of which time taken to arrive at the airport is significantly different. Using Figure \ref{fig:extraSTAR1} to illustrate, we have Flight 1 approaching the airport via the northern waypoint and Flight 2 approaching the airport via the eastern waypoint, where the time taken to travel from the eastern waypoint to the airport is longer than for the northern waypoint. At the simulation step for 8:25, both Flight 1 and Flight 2 would not have their last flight leg (shown in the figure) frozen, hence Flight 1 would be scheduled in front of Flight 2 at this simulation step. Assuming a minimum required separation time of 5 minutes, Flight 1 would be scheduled for arrival at 8:35, and Flight 2 at 8:40. In the next simulation step at 8:30, only Flight 2 would be frozen. If Flight 1 is later assigned a delay of even 1 second, say to satisfy separation requirements with another flight at Node 1,  it would violate the minimum separation requirements at the airport, and instead be scheduled 5 minutes after Flight 2 as depicted in Figure \ref{fig:extraSTAR2}. This leads to the unintended phenomenon of flights using paths of which last node is further away from the destination airport receiving priority scheduling, which violates both the First-Come-First-Served (FCFS) and First-Scheduled-First-Served (FSFS) queue system. One method we have implemented to circumvent this problem is introducing a dummy airport node, just before the airport node. The final approach node is located at the same location as the airport, and connects to the airport with the distance and preferred leg time set to zero. The flight path will then be modified to connect the current second last node to the final approach node, and the final approach node to the airport. We show in Proposition \ref{prop:dummy} that including a final approach node ensures that flights will not encounter the phenomenon of unintended priority scheduling based on distance between its last waypoint and destination airport as described above. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/extraSTAR1.pdf}
+    \caption{Negative Example of Frozen Flight Legs}
+    \label{fig:extraSTAR1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/extraSTAR2.pdf}
+    \caption{Negative Example of Frozen Flight Legs, TTO View}
+    \label{fig:extraSTAR2}
+\end{figure}
+
+\begin{proposition}
+\label{prop:dummy}
+    Flights will not be prioritized based on its distance from the last waypoint to the destination airport, if all flights are required to pass through a final approach node.
+\end{proposition}
+\begin{proof}
+    Say there are k waypoints that have flights going from these waypoints, to the final approach node. We consider a set of flights $\mathcal{F}$, with increasing time from the current second last (waypoint) node to final approach node, and some flights between the waypoint and final approach node. The TTO at the final approach node would be frozen for the flights in between the waypoint and final approach node, while for other flights that have yet to reach the current second last waypoint, their TTO at the final approach node remains adjustable. Currently the queue order at the final approach node may not follow FCFS, as we have shown earlier that freezing flight legs could lead to a violation of the scheduling rules. Additionally, the last flight leg, from the final approach node to the airport, must currently not be frozen, otherwise it would not be considered in the main loop of the DES. We recall that a flight leg would only be frozen when it between the current and next node, that is, for this proof, between the final approach node and airport node, or more formally, when $t_{f,|P_f|-1}<t_{now}\leq t_{f,|P_f|}$. Given that there is zero travel time between the final approach node and airport, the flights entering the queue at the airport would be scheduled according to the queue system chosen. As such, flights coming from all k waypoints, will have equal travel time on the last leg (dummy to airport), and not be frozen prematurely, particularly in cases where the last waypoint is abnormally far from the airport. This ensures fairness in the scheduling, where the time at which flights are frozen depends on the queue, rather than the travel time from the last waypoint to the airport.
+\end{proof}
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Discrete Event Simulation and FSFS Logic}
+Let $\mathcal{L}$ denote the set of legs in all active and completed flights, $\mathcal{F}_A\cup\mathcal{F}_C$. Let $l$ index the legs in $\mathcal{L}$ and let $(n_l,\widetilde{d}_l,t_l,\prescript{}{l}t,\widetilde{t}_l,c_l,\delta_l)$ denote the node, preferred leg duration, TTO, previous TTO, R0TTO, channel, and channel separation, respectively, currently assigned to leg $l$. Let $\mathcal{K}$ denote the set of all node-channel resources  in the network. Let $k$ index the resources in $\mathcal{K}$ and let $(n^k,c^k,\delta^k,u^k,b^k)$ denote the status of the resource including the node, channel, separation time, block status, and next frozen block, respectively for resource $k$. The block status for a resource, $u^k$, is Boolean variable indicating whether the resource is blocked (TRUE) or free (FALSE). If the resource is blocked, the block status also includes the time which it is blocked until. Let $\mathcal{B}$ denote the set of all frozen blocks, indexed by $b$, and consisting of data $(k(b),t_1(b),t_2(b))$ representing the resource index, starting time, and ending time, respectively, of the frozen block, $b$. Let $(\mathcal{B},b)\gets \mathcal{B}\cup\{(k,t_1,t_2)\}$ denote the operation of adding a frozen block $(k,t_1,t_2)$ to the set $\mathcal{B}$ and returning augmented set $\mathcal{B}$ together with the index for the new block, $b$. The sets $\mathcal{L},\mathcal{K},\mbox{ and } \mathcal{B}$ capture the current simulation state of legs, resources, and frozen blocks.
+
+A simulation event is a tuple $v=(y,i,t)$ denoting the event type, $y$, in the set of event types $Y$, the index $i$ in $\mathcal{L}\cup\mathcal{K}\cup\mathcal{B}$ indexing the data for the event, and $t$, the time of the event. Let $Q$ denote an ordered set of events, sorted in increasing order of the time index. Ties in the time index are resolved arbitrarily. Let $Q\leftarrow Q\cup\{v\}$ denote the operation of adding a new event $v$ to the queue $Q$ and updating the queue order. Let $Q[m]$ refer to the $m^{th}$ element of the queue and let $(v,Q)\leftarrow Q(m)$ denote the operation of extracting the $m^{th}$ event from the queue and returning both the $m^{th}$ event, $v$, and the residual queue, $Q$. Let $Q_M$ denote the master queue for the simulation consisting of all unprocessed events. Let $Q_n$ denote the queue of events pending for assignment at node $n\in \mathcal{N}$, and let $Q_P=\{Q_n,n\in\mathcal{N}\}$ refer to the collection of pending event queues. Note that when implementing the event queues, we may simply select the event with the earliest event time in $O(n)$, rather than re-sorting the queue at each update in $O(n\log(n))$.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{simulateFSFS($\mathcal{L},\mathcal{K}$)}}
+\label{alg:simulateFSFS}
+$(\mathcal{L},\mathcal{K},\mathcal{B})\gets $ \texttt{reconcileFrozenLegs($\mathcal{L},\mathcal{K}$)}\\
+$Q_M\gets\emptyset;$\\
+\For{$n\in\mathcal{N}$}{
+	$Q_n\gets\emptyset;$\\
+	\For{$c\in c(n)$}{
+		$b\gets $ \texttt{getFirstBlock$(\mathcal{B},n,c)$};\\
+		\If{$b>0$}{
+			$t_{next} \gets t_1(b);$\\
+			$y \gets $ BLOCKSTART;\\
+			$v \gets (y,b,t_{next});$\\
+			$Q_M \gets Q_M\cup\{v\};$\\
+		}
+	}
+}
+\For{$l\in\mathcal{L}$}{
+	\If{and(not(\texttt{isFrozen$(l)$}),\texttt{prevTTOIsNotVisible$(l)$})}{
+		$t_l\gets \prescript{}{l}t+\widetilde{d}_l;$\\
+		$y\gets$ LEGREADY;\\
+		$v\gets (y,l,t_l);$\\
+		$Q_M\gets Q_M\cup\{v\};$\\
+	}
+}
+\While{$Q_M \neq \emptyset$}{
+	$\big(Q_M,(y,i,t)\big)\gets Q_M(1);$\\
+	$t_{sim}\gets t;$\\
+	\Switch{y}{
+		\textbf{when} BLOCKSTART {$k\gets i;$ $(\mathcal{L},\mathcal{K},Q_M)\gets $ \texttt{processBLOCKSTART$(t_{sim},k,Q_M)$}}\;
+		\textbf{when} BLOCKEND {$k\gets i;$ $(\mathcal{L},\mathcal{K},Q_M)\gets $ \texttt{processBLOCKEND$(t_{sim},k,Q_M)$}}\;
+		\textbf{when} LEGREADY {$l\gets i;$ $(\mathcal{L},\mathcal{K},Q_M,Q_P)\gets $ \texttt{processLEGREADY$(t_{sim},l,n_l,\mathcal{L},\mathcal{K},Q_M,Q_P)$}}\;
+		\textbf{when} RESERVATIONEND {$k\gets i;$ $(\mathcal{L},\mathcal{K},Q_M,Q_P)\gets $ \texttt{processRESERVATIONEND$(t_{sim},k,\mathcal{L},\mathcal{K},Q_M,Q_P)$}}\;
+	}
+}
+\Return{$\mathcal{L}$}
+\end{algorithm}
+
+The goal of Algorithm \ref{alg:simulateFSFS} is to convert the current set of flight plans into flight plans which are sequence-feasible and, collectively, resource-feasible for all legs and consistent, at least for frozen legs and legs within the same FIR. The timing of frozen legs may be adjusted to reconcile resource conflicts but completed legs will be unaffected by the procedure. The scheduling logic is decentralized at the FIR level with visibility of flights outside the FIR limited by the information regime. If a resource is blocked by a previous flight, the FIR is assumed to maintain a queue of legs pending for availability of the resource and to assign the resource to the pending leg with the earliest event time --- the R0TTO for R1-level flights, and the TTO for R0-level flights. The FIRs thus grant R1-level flights priority via a First-Scheduled-First-Served logic.
+
+Algorithm \ref{alg:simulateFSFS}  first reconciles the times of all frozen legs and initializes  the set of frozen blocks, $\mathcal{B}$. Then it empties the master queue, $Q_M$, and pending queues, $Q_n$, at all nodes $n$. It also schedules the start of the first frozen block for each node and channel within that node ($c\in c(n)$) by adding a BLOCKSTART event to the master queue marking the start time of the block, $t_1(b)$. It then loops over all legs and identifies the first unfrozen leg for each flight in each FIR traversed by the flight plan. If that leg is a departure, or if the previous TTO is not visible, as captured by \texttt{prevTTOIsNotVisible$(l)$}, 
+then a LEGREADY event is prepared for that leg and added to the master queue, $Q_M$, at time $t_l\gets \prescript{}{l}t+\widetilde{d}_l$. This effectively simulates each FIR conducting its own decentralized operations. Once the queues have been thus initialized, the main loop of the discrete event simulation commences. Within that loop, the first event is removed from the master queue ($\big(Q_M,(y,i,t)\big)\gets Q_M(1);$) and the simulation time is advanced to the time of the first event. The event is then processed by different routines according to the event type. The BLOCKSTART event marks the beginning of a frozen block. The BLOCKEND event comes at the end of the most recent frozen block on the resource. The RESERVATIONEND event comes after the required separation time of the last unfrozen leg to be assigned to the resource. The BLOCKEND and RESERVATIONEND events both mark the freeing of a resource. Each of these events will trigger a call to the \texttt{processPENDING} routine which assigns pending legs to the appropriate resource, if available. When a pending leg is assigned to a resource (within the \texttt{processPENDING} routine), a LEGREADY event is also scheduled for the next leg of the flight, provided the visibility requirements are met. In this way, it can be guaranteed that all legs are scheduled to be sequence-feasible and resource-feasible.
+
+In the next section, Section \ref{sec:DESsupport}, we describe the supporting algorithms for the discrete event simulation in greater detail and provide proofs of correctness. The results for the DES are deferred to Chapter \ref{chap7}, where they will be compared against the integrated simulator utilizing both the AFR and the WFR.
+
+%--------------------------------------------------------
+\section{Supporting Algorithms for Discrete Event Simulation}
+\label{sec:DESsupport}
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{updateFrozenLeg($t_{sim},l,k,\delta,\mathcal{L},\mathcal{K},Q_M$)}}
+\label{alg:updateFrozenLeg}
+$t_{earliest}\gets \prescript{}{l}t+\widetilde{d}_l;$\\
+\uIf{$t_{earliest} > t_{sim}$}{
+	$t_l \gets t_{earliest};$\\
+	$y \gets$ FROZENSTART;\\
+	$v \gets (y,l,t_l);$\\
+	$Q_M \gets Q_M\cup\{v\}$\\
+}\Else{
+	$b \gets b^k;$\\
+	\uIf{$b>0$}{
+ 		$t_{next} \gets t_2(b);$\\
+	}\Else{
+		$t_{next} \gets t_{sim};$\\
+	}
+ 	$t_{next} \gets \max(t_{next},t_{sim});$\\
+	$t_1 \gets t_{next};$\\
+	$t_2 \gets t_{next}+\delta;$\\
+	$(\mathcal{B},b)\gets \mathcal{B}\cup\{(k,t_1,t_2)\};$\\ 
+	$b^k \gets b;$\\
+	$t_l \gets t_{next};$\\
+	$\delta_l \gets \delta;$\\
+	$l^\prime \gets $ \texttt{nextLeg($l$)};\\
+	\If{\texttt{isFrozen($l^\prime$)}}{
+		$\prescript{}{l^\prime}t \gets t_{next};$\\
+	}
+}
+\Return{$\mathcal{L},\mathcal{K},\mathcal{B},Q_M$}
+\end{algorithm}
+
+Algorithm \ref{alg:updateFrozenLeg} responds to a FROZENSTART event for frozen leg $l$ assigned to resource $k$ with separation time $\delta$. The current TTO, $t_l$, is guaranteed to be less than or equal to the current simulation time, $t_{sim}$.  If the earliest time this event can be scheduled based on the previous TTO, $\prescript{}{l}t$, exceeds the current simulation time, then the FROZENSTART event is rescheduled into the future ($Q_M \gets Q_M\cup\{v\}$). Otherwise, using FCFS logic, this leg gets the next available time on resource $k$, $t_{next}$. The value of $t_{next}$ is either the current simulation time or the end of the last frozen block assigned to resource $k$, $b^k$, whichever is later. A new frozen block, $b$, is created to register the assignment of leg $l$ to resource $k$ and the resource is updated to point to this block, $b^k$. The frozen leg TTO, $t_l$, and separation time $\delta_l$ are updated as well. If there is a next leg, $l^\prime=$\texttt{nextLeg($l$)}, on the same flight, and that leg is also frozen, then previous TTO of the next leg, $\prescript{}{l^\prime}t$ is updated to the TTO, $t_{next}$, of the current frozen leg.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{reconcileFrozenLegs($\mathcal{L},\mathcal{K}$)}}
+\label{alg:reconcileFrozenLegs}
+$Q_M \gets \emptyset;$\\
+$\mathcal{B}\gets \emptyset;$\\
+\For{$k \in \mathcal{K}$}{
+	$b^k \gets 0$\\
+}
+\For{$l \in \mathcal{L}$}{
+	\If{\texttt{isFrozen($l$)}}{
+		$y \gets$ FROZENSTART;\\
+		$v \gets (y,l,t_l);$\\
+		$Q_M \gets Q_M\cup\{v\};$\\
+	}
+}
+\While{$Q_M \neq \emptyset$}{
+	$\big(Q_M,(y,l,t_{sim})\big)\gets Q_M(1);$\\
+	$k \gets (n_l,c_l);$\\
+	$\delta \gets \delta_l;$\\
+	$(\mathcal{L},\mathcal{K},\mathcal{B},Q_M) \gets$ \texttt{updateFrozenLeg($t_{sim},l,k,\delta,\mathcal{L},\mathcal{K},Q_M$)};\\
+}
+\Return{$\mathcal{L},\mathcal{K},\mathcal{B}$}
+\end{algorithm}
+
+Algorithm \ref{alg:reconcileFrozenLegs} conducts a discrete event simulation to reconcile all frozen legs into a resource-feasible plan. The master queue, $Q_M$ and the set of frozen blocks, $\mathcal{B}$, are initialized to the empty set, $\emptyset$, and all references to frozen blocks in the resource set, $\mathcal{K}$ are set to zero. A FROZENSTART event is created for each frozen leg and added to master queue, $Q_M$, at its pre-computed TTO, $t_l$. The events are processed in order from smallest TTO to largest and each event is updated as described in Algorithm \ref{alg:updateFrozenLeg}. The set $\mathcal{B}$ ends with a frozen block for every frozen leg on the corresponding resource.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{processBLOCKSTART($t_{sim},b$)}}
+\label{alg:processBLOCKSTART}
+$k \gets k(b);$\\
+$u^k \gets (TRUE, t_2(b));$\\
+
+$t_{next} \gets t_2(b);$\\
+$y \gets $ BLOCKEND;\\
+$v \gets (y,b,t_{next});$\\
+$Q_M \gets Q_M\cup\{v\};$\\
+\Return{$Q_M,\mathcal{K}$}
+\end{algorithm}
+
+
+Algorithm \ref{alg:processBLOCKSTART}  processes a BLOCKSTART event for frozen block, $b$, The matching resource, $k$, is identified and the blocked status, $u^k$, is set to TRUE until the end time of the block $t_2(b)$. $t_2(b)$ is then extracted from the block and used to add a BLOCKEND event to the master queue, $Q_M$. 
+
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{isAvailable($t_{sim},k$)}}
+\label{alg:isAvailable}
+$\alpha \gets \mbox{not$(u^k)$};$\\
+$b\gets b^k;$\\
+\If{and$(\alpha,b>0)$} {
+	$t_{next}\gets t_1(b);$\\
+	$\delta\gets \delta^k;$\\
+	$\alpha\gets \{ t_{sim}+\delta\leq t_{next}\} \mbox{?TRUE:FALSE} $\\
+}
+\Return{$\alpha$}
+\end{algorithm}
+
+Algorithm \ref{alg:isAvailable} checks whether the resource $k$ is not blocked at the current time, $t_{sim}$, and, if it is free, whether or not a reservation equal in length to the current separation time for the resource, $\delta^k$, can be inserted before the next frozen block, $b^k$, for that resource, if such a block exists ($b^k>0$).
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{assignLegToResource($t_{sim},l,k,\delta,\mathcal{L},\mathcal{K},Q_M$)}}
+\label{alg:assignLegToResource}
+$c_l \gets c^k;$\\
+$t_l \gets t_{sim};$\\
+$\delta_l \gets \delta;$\\
+$u^k \gets (TRUE, t_{sim}+\delta);$\\
+$y \gets$ RESERVATIONEND;\\
+$i \gets k;$\\
+$t \gets t_{sim}+\delta;$\\
+$v \gets (y,i,t);$\\
+$Q_M \gets Q_M\cup\{v\};$\\
+\While{true}{
+    $l^\prime \gets$ \texttt{nextLeg($l$)};\\
+    \If{
+        \texttt{isVisible$(l,l^\prime)$}}{
+	$\prescript{}{l^\prime}t \gets t_{sim};$\\
+	$t_{l^\prime} \gets t_{sim}+\widetilde{d}_{l^\prime};$\\
+	$y \gets$ LEGREADY;\\
+	$v \gets (y,l^\prime,t_{l^\prime});$\\
+	$Q_M \gets Q_M\cup\{v\};$\\
+    }\Else{
+        break;
+    }
+}
+
+\Return{$\mathcal{L},\mathcal{K},Q_M$}
+\end{algorithm}
+
+Algorithm \ref{alg:assignLegToResource} assigns an unfrozen leg $l$ to resource $k$ at TTO $t_{sim}$. The channel for the leg is fixed at the channel for resource $k$ and the required separation for the leg on that channel is set to $\delta$. The resource is guaranteed to be free at the current time, $t_{sim}$. The blocked status of the resource, $u^k$, is thus changed to TRUE, marking the beginning of a reservation, until the end of the reservation $t_{sim}+\delta$. A RESERVATIONEND event is scheduled to occur at time $t_{sim}+\delta$. If the next leg(s) for the flight is visible (that is, if it belongs to the same FIR as the current leg or it is part of an R1-level flight) then the previous TTO of the next leg, $\prescript{}{l^\prime}t $ is set to the TTO of the current leg and a tentative value for the next TTO, $t_{l^\prime}$, is set to the current TTO plus the preferred duration of the next leg, $\widetilde{d}_{l^\prime}$. This is the earliest sequence-feasible TTO for the next leg. A LEGREADY event is added to the master queue for this next leg using the tentative TTO as the LEGREADY time.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{getBestChannel($t_{sim},l,n,\mathcal{L},\mathcal{K}$)}}
+\label{alg:getBestChannel}
+$c_{best} \gets $ NOAVAILABLECHANNEL;\\
+\uIf{\texttt{isWaypoint$(n)$}}{
+	$c\gets 0$;\\
+	$k \gets $ \texttt{getResource$(n,c)$};\\
+	\If{\texttt{isAvailable$(t_{sim},k)$}}{
+		$c_{best} \gets c;$\\
+	}
+}\Else{
+	\uIf{\texttt{isArrival$(l)$}}{
+		$c\gets 1;$\\
+		$k \gets $ \texttt{getResource$(n,c)$};\\
+		\uIf{\texttt{isAvailable$(t_{sim},k)$}}{
+			$c_{best} \gets c;$\\
+		}\Else{
+			$c\gets 3;$\\
+			$k \gets $ \texttt{getResource$(n,c)$};\\
+			\If{\texttt{isAvailable$(t_{sim},k)$}}{
+				$c_{best} \gets c;$\\
+			}
+		}
+	}\Else{
+		$c\gets 2;$\\
+		$k \gets $ \texttt{getResource$(n,c)$};\\
+		\uIf{\texttt{isAvailable$(t_{sim},k)$}}{
+			$c_{best} \gets c;$\\
+		}\Else{
+			$c\gets 3;$\\
+			$k \gets $ \texttt{getResource$(n,c)$};\\
+			\If{\texttt{isAvailable$(t_{sim},k)$}}{
+				$c_{best} \gets c;$\\
+			}
+		}
+	}
+}
+\Return{$c_{best}$}
+\end{algorithm}
+
+Algorithm \ref{alg:getBestChannel} identifies the best available channel for a non-frozen leg, $l$, ending at node $n$ at time $t_{sim}$, if an appropriate channel is available. If no appropriate channel is available, the algorithm returns NOAVAILABLECHANNEL. If the node $n$ is a waypoint, there is only one channel possibility ($c=0$). If the resource $(n,0)$ is available then the best channel is 0. If the node $n$ is not a waypoint, then it is an airport and there are three channel choices. If the leg is an arrival, then the preferred channel is the arrival channel $(c=1)$. If that resource is available, then the best channel is 1. Otherwise, if the mixed channel $(c=3)$ resource is available, then the best channel is 3. Similarly, if the leg is a departure leg it will be assigned first to the departure channel $(c=2)$ if it is available or, second, to the mixed channel $(c=3)$ if it is available.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{processPENDING($t_{sim},n,\mathcal{L},\mathcal{K},Q_M,Q_P$)}}
+\label{alg:processPENDING}
+$m\gets 1;$\\
+\While{$m\leq |Q_n|$}{
+	$(y,l,t) \gets Q_n[m];$\\
+	$c_{best} \gets $ \texttt{getBestChannel$(t_{sim},l,n,\mathcal{L},\mathcal{K})$};\\
+	\uIf{\mbox{not($c_{best}==$NOAVAILABLECHANNEL)}}{
+		$c\gets c_{best};$\\
+		$k \gets $ \texttt{getResource$(n,c)$};\\
+		$\delta\gets \delta^k;$\\
+		$\big(Q_n,v\big) \gets Q_n(m);$\\
+            $(\mathcal{L},\mathcal{K},Q_M)\gets $    \texttt{assignLegToResource($t_{sim},l,k,\delta,\mathcal{L},\mathcal{K},Q_M$)};\\
+	}\Else{
+		$m\gets m+1;$\\
+	}
+}
+\Return{$\mathcal{L},\mathcal{K},Q_M,Q_P$}
+\end{algorithm}
+
+Algorithm \ref{alg:processPENDING} considers all the pending leg events for node $n$ and assigns them as many of them to appropriate available channels as possible. Recall $Q_n$ is the collection of LEGREADY pending events for node $n$ sorted in increasing order of the scheduled times, R0TTO.  They are processed in sequence where $m$ indexes the $m^{th}$ element of $Q_n$. If the best available channel $c_{best}$ for that element is valid (ie. not($c_{best}==$ NOAVAILABLECHANNEL)) then the event is removed from the pending events for node $n$ ($\big(Q_n,v\big) \gets Q_n(m);$) and the leg is assigned to resource $k$ matching $(n,c_{best})$. In this case, $m$ will now point to the next pending event for node $n$. Otherwise, there is no available channel for the $m^{th}$ event, so we increment $m$ and repeat until all elements of $Q_n$ have been considered. Of course, this is inefficient since at most three pending events can be assigned before all available channels become blocked. The algorithm can be easily modified to break out of the while loop when such a condition is detected.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{processBLOCKEND($t_{sim},b$)}}
+\label{alg:processBLOCKEND}
+$k \gets k(b);$\\
+\If{$t_{sim} < u^k[2]$}{
+	$t_{next} \gets u^k[2];$\\
+	$y \gets $ BLOCKEND;\\
+	$v \gets (y,b,t_{next});$\\
+	$Q_M \gets Q_M\cup\{v\};$\\
+        \Return{$Q_M,\mathcal{K}$}
+}
+$u^k \gets FALSE;$\\
+$n\gets n(b);$\\
+$b\gets $ \texttt{nextBlock$(\mathcal{B},b^k)$};\\
+$b^k \gets b;$\\
+\If{$b>0$}{
+	$t_{next} \gets t_1(b);$\\
+	$y \gets $ BLOCKSTART;\\
+	$v \gets (y,b,t_{next});$\\
+	$Q_M \gets Q_M\cup\{v\};$\\
+}
+$(\mathcal{L},\mathcal{K},Q_M,Q_P)\gets $ \texttt{processPENDING($t_{sim},n,\mathcal{L},\mathcal{K},Q_M,Q_P$)};\\
+\Return{$Q_M,\mathcal{K}$}
+\end{algorithm}
+
+Algorithm \ref{alg:processBLOCKEND} processes a BLOCKEND event for frozen block, $b$.  The matching resource, $k$, is identified, and if it was blocked until a later time, we add it back to the event queue at a later time, and exit the function. Otherwise, the blocked status, $u^k$, is set to FALSE. The next frozen block, $b$, for resource $k$ is identified and the resource block pointer, $b^k$, is updated to point to it. If the next block exists ($b>0$), the start time, $t_1(b)$, is extracted from the block and used to add a BLOCKSTART event to the master queue, $Q_M$.  Since the resource is now free to accept another leg, the final call is to the \texttt{processPENDING} routine for the associated node.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{processLEGREADY($t_{sim},l,n,\mathcal{L},\mathcal{K},Q_M,Q_P$)}}
+\label{alg:processLEGREADY}
+$y \gets $ LEGPENDING;\\
+\uIf{\mbox{isR1Flight}$(l)$}{
+$t \gets \widetilde{t}_l;$\\
+}\Else{
+$t \gets t_{sim};$\\
+}
+$v \gets (y,l,t);$\\
+$Q_n \gets Q_n\cup\{v\};$\\
+$(\mathcal{L},\mathcal{K},Q_M,Q_P)\gets $ \texttt{processPENDING($t_{sim},n,\mathcal{L},\mathcal{K},Q_M,Q_P$)};\\
+\Return{$\mathcal{L},\mathcal{K},Q_M,Q_P$}
+\end{algorithm}
+
+Algorithm \ref{alg:processLEGREADY} processes a LEGREADY event for leg $l$ at node $n$. It first adds a LEGPENDING event to the queue of pending events for node $n$. Notice that if the leg belongs to an R1-level flight, then it uses the scheduled TTO, $ \widetilde{t}_l$, or R0TTO, for this leg. Otherwise, it uses the current simulation time, $t_{sim}$. In this way, if there is a queue of legs pending, the legs with earlier scheduled times will receive priority, provided they are R1-level flights. This is what we refer to as the First-Scheduled-First-Served logic. If there are no R1-level flights, then the queue operates according to First-Come-First-Served logic.  The algorithm then calls the \texttt{processPENDING} function to assign as many pending legs to channels at node $n$ as possible.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{processRESERVATIONEND($t_{sim},k,\mathcal{L},\mathcal{K},Q_M,Q_P$)}}
+\label{alg:processRESERVATIONEND}
+\If{$t_{sim} < u^k[2]$}{
+        \Return{$\mathcal{L},\mathcal{K},Q_M,Q_P$}
+}
+$u^k \gets FALSE;$\\
+$n\gets n^k;$\\
+$(\mathcal{L},\mathcal{K},Q_M,Q_P)\gets $ \texttt{processPENDING($t_{sim},n,\mathcal{L},\mathcal{K},Q_M,Q_P$)};\\
+\Return{$\mathcal{L},\mathcal{K},Q_M,Q_P$}
+\end{algorithm}
+
+Algorithm \ref{alg:processRESERVATIONEND} is called to process the RESERVATIONEND event for resource $k$. The time $t_{sim}$ marks the first time after the last leg to use this resource that the resource becomes free to assign to another leg. However, if the resource was blocked until a later time, the function simply exits without doing anything. Otherwise, the blocked status, $u^k$, is set to FALSE and the processPENDING algorithm is called in case there are any legs pending for this resource in the pending queue, $Q_n$, for node $n=n^k$. 
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsubsection*{Validity of DES Algorithm}
+Freezing the TTO of legs takes place outside of the DES loop as part of the rolling horizon simulation. For leg $l^\prime \in \mathcal{L}$, let $f^\prime=f(l^\prime)$ denote the corresponding flight and $j^\prime=j(l^\prime)$ denote the node index within the flight plan. If $j^\prime >1$, let $l^{\prime\prime}$ denote the leg corresponding to the previous node index, $j^\prime-1$, for flight $f^\prime$. Let $t_{l^\prime}=t_{f^\prime j^\prime}$ the TTO for leg $l^\prime$ and let $\prescript{}{l^\prime}t$ denote the TTO on record for the previous node. The only properties we expect of the freezing operation are:
+
+\begin{enumerate}
+  \item Frozen legs are contiguous within flights: if leg $l^\prime$ is frozen and $j^\prime>1$ for flight $f^\prime$, then the leg corresponding to node $j^\prime -1$ is also frozen.
+\item Frozen legs are consistent: If leg $l^\prime$ is frozen and $j^\prime >1$ then $\prescript{}{l^\prime}t=t_{l^{\prime\prime}}$.
+  \item Frozen legs are sequence feasible:  if leg $l^\prime$ is frozen and $j^\prime>1$  then $t_{l^\prime}\geq t_{l^{\prime\prime}}+ {\widetilde{d}}_{l^\prime}$.
+\end{enumerate}
+
+As noted, a set of frozen legs may fail to be resource-feasible, and so the purpose of  \texttt{reconcileFrozenLegs()} is to enforce resource-feasibility.
+
+\begin{lemma}
+\label{lem:frozen}
+If a set of frozen legs is resource-feasible, then the solution will be unchanged by algorithm  \texttt{reconcileFrozenLegs()}. 
+\end{lemma}
+\begin{proof}
+The set $Q_M$ is initialized to consist of all frozen legs $l^\prime$ sorted in increasing order of $t_{l^\prime}$. Within the loop $\mathbf{while }Q_M\neq \emptyset$, one event, $Q_M(1)$, is removed and at most one event (for the leg just removed) is added (in \texttt{updateFrozenLeg()}). The proof is by induction on the number of iterations the $\mathbf{while }$ loop has been performed. The induction hypothesis is that for every event that was removed up to and including iteration $n$ no new event was generated. The legs removed in the first $n$ iterations have TTOs which are unchanged. Furthermore, the set of resource blocks $\mathcal{B}$ after iteration $n$ corresponds to the resource blocks associated with the original TTOs of the legs removed in the first $n$ iterations. By assumption, there are no overlaps among these blocks.  The hypothesis is trivially true for $n=1$ because, assuming  ${\widetilde{d}}_{l^\prime}>0$ the first leg to be processed cannot have a previous leg at the same or earlier time. Assuming the hypothesis is true for iteration $n$, we consider the next iteration. The next event to be processed $(y,l^\prime,t_{sim})$ must correspond to a leg, $l^\prime$, which has not yet been processed, by the induction hypothesis. Consequently, $t_{sim}=t_{l^\prime}$, the original TTO for this leg. Since $t_{l^\prime}\geq t_{l^{\prime\prime}}+ {\widetilde{d}}_{l^\prime}$, the previous leg must already have been processed and its TTO is unchanged. Consequently, in \texttt{updateFrozenLeg()} the condition $t_{earliest}>t_{sim}$ will fail and no new event will be generated. If the resource is free at this time, $t_{l^\prime}$, a new block will be created for resource $k$ which matches a block in the original solution. If the resource is not free at this time, that would imply this block overlaps one  of the blocks in $\mathcal{B}$. By the induction hypothesis this would contradict the assumption that the original solution was resource-feasible. Consequently, the resource must be free at time $t_{l^\prime}$ and the induction hypothesis holds for $n+1$.
+\end{proof}
+
+As discussed, once a leg $l'$ is completed, its TTO, $t_{fj}$, channel, $c_{fj}$, channel separation time, $\delta_{fj}$, and reservation block $b(n_j,c_{fj},f)=\big[t_{fj},t_{fj}+\delta_{fj}\big]$ become immutable and its previous TTO, $\prescript{}{j}t_f$, becomes fixed at $t_{f,j-1}$. We propose that the output of \texttt{simulateFSFS()} is resource feasible, otherwise, there will be an immutable infeasibility in the solution.
+
+\begin{proposition}
+\label{prop:feasible1}
+    The output of \texttt{simulateFSFS()} is resource feasible.
+\end{proposition}
+\begin{proof}
+    The set $Q_M$ is initialized to consist of all non-frozen legs $l^\prime$, whose previous TTO is not visible, and all frozen blocks $b$ sorted in increasing order of time. Here, time is denoted by $t_{next}$ for the start time of blocks, and $t_{l'}$ for legs. The set $Q_n$ is the set of LEGREADY pending events for node $n$, sorted in increasing order of scheduled times, R0TTO. This set is initialized to $\emptyset$. All resources $k$ will have the blocked status $u^k$ initialized to FALSE, that is, resource $k$ is available. The proof is by induction on the number of iterations the loop $\textbf{while }Q_M\neq \emptyset$ has been run. The induction hypothesis, is that for every event that was removed up to and including iteration n, no overlapping resource block was generated. The hypothesis is trivially true for $n = 1$, because no resource block was previously generated. Assuming the hypothesis is true for iteration $n$, we consider the next iteration. The next event to be processed could be one of four events: \texttt{BLOCKSTART}, \texttt{BLOCKEND}, \texttt{LEGREADY}, and \texttt{RESERVATIONEND}. Excluding the \texttt{BLOCKSTART} event, which does no TTO assignment, the other events make a call to the function \texttt{processPENDING()}. For each flight leg $l'$ in the pending queue $Q_n$, \texttt{processPENDING()} then calls \texttt{getBestChannel()}. For waypoints, \texttt{getBestChannel()} checks if the waypoint is available, and for airports, \texttt{getBestChannel()} checks if a dedicated channel is available, otherwise a common channel. Availability is defined by the function \texttt{isAvailable()}, where a resource must have its blocked status $u^k = FALSE$, and either possesses no frozen block $b^k$ in the future, or have sufficient separation between the start time of the next frozen block $t_{next}$ and the current flight leg time $t_{l'}$, $t_{l'} + \delta \leq t_{next}$. Only if these criteria are fulfilled, implying no overlap with a block that was scheduled prior to iteration $n$, will \texttt{assignLegToResource()} be called. \texttt{assignLegToResource()} then blocks the current resource by setting $u^k = TRUE$ and adds a RESERVATIONEND event to the queue $Q_M$, at $t = t_{sim} + \delta$. It follows that resource $k$ will not be assigned any flight leg for $t < t_{sim} + \delta$, hence no reservation block in the future will overlap with the current reservation block.
+    
+    The function \texttt{processPENDING()} considers, for node $n$, up to three separate channels $c$, and therefore can result in a maximum of three assignments to different resources $k$. As soon as an assignment is made, that resource becomes blocked $u^k = TRUE$, so each assignment will be made to a unique resource. A reservation block $b(n_j,c_{fj},f)$ is unique to a single resource $k$, belonging to channel $n$ and node $c$. As the assignments are made on unique resources, they are independent of each other and can be considered separately. Suppose one of the assignment is for resource $k$, and leg $l'$. If resource $k$ is available, this is due to either having no reservation block in the future, or sufficient separation time $t_{l'} + \delta \leq t_{next}$ with the start time of the next frozen block, and an unblocked resource $u^k = FALSE$. Hence, following the discussion in the previous paragraph, the inner functions of \texttt{processPENDING()} will assign a resource feasible reservation block for flight leg $l'$ and set $u^k = TRUE$, blocking any infeasible assignments in later iterations. If no resource is available, the condition not($c_{best}==$NOAVAILABLECHANNEL) fails and no resource block is generated for resource $k$. Consequently, the resource $k$ will either be assigned a resource feasible reservation block, or no resource block is generated, and the induction hypothesis holds for $n+1$.
+\end{proof}
+
+\begin{corollary}
+    The function \texttt{reconcileFrozenLegs()} does not alter the TTO of completed legs.
+\end{corollary}
+\begin{proof}
+The completed legs in the output of \texttt{simulateFSFS()} are resource feasible due to Proposition \ref{prop:feasible1}. Furthermore, since $t_{now} > t_{l'}$, for any completed leg $l'$, leg $l'$ has previously been processed, is resource feasible and is immutable. Hence, combining this result with Lemma  \ref{lem:frozen}, we obtain the result.
+\end{proof}
+
+It is imperative for the algorithm to schedule all flight legs. We must ensure that \texttt{PROCESSPENDING()} does not get trapped in an infinite loop where no channel is ever available for a particular flight leg, that is, $c_{best}==$NOAVAILABLECHANNEL. We prove that all flight legs will eventually be assigned a TTO in Proposition \ref{prop:allassigned}.
+
+\begin{proposition}
+\label{prop:allassigned}
+    All flight legs will be scheduled at the end of the DES.
+\end{proposition}
+\begin{proof}
+    The key algorithm that will lead to an assignment of flight legs is \\ \texttt{processPENDING()}. This algorithm is only called during either of the three algorithms: \texttt{processBLOCKEND()}, \texttt{processLEGREADY()}, or \\ \texttt{processRESERVATIONEND()}. We first cover the trivial case where the flight leg is the first to be assigned onto an empty resource. Here, a LEGREADY event would exist in the queue, and when the LEGREADY event is processed, the algorithm calls \texttt{processPENDING()} through \texttt{processLEGREADY()}. Because no prior flight leg has been assigned to this resource, we have that the resource is not blocked ($u^k==FALSE$). Thus \texttt{isAvailable()} will return $TRUE$ and the flight leg would be assigned a TTO at this resource.
+    
+    For the general case where some flights have already been assigned a resource, we consider two cases, where we focus on the assignment of a TTO $t_{fj}$ for flight $f$ on flight leg $j$, at resource $k$. We assume without a loss of generality that this is the only event in the queue of LEGREADY events $Q_n$. The first case is when the there are no frozen flight legs ahead of $t_{fj}$ at resource $k$. Both functions \texttt{processBLOCKEND()} and \texttt{processRESERVATIONEND()} pertaining to a feasible resource for the flight leg would have have that the resource is not blocked ($u^k==FALSE$), \texttt{isAvailable()} returns $TRUE$, and the flight leg would be assigned a TTO at resource $k$. \texttt{processLEGREADY()} may also have scheduled the flight leg if the resource is available, but this condition is unnecessary for our proposition as either \texttt{processBLOCKEND()} or \\ \texttt{processRESERVATIONEND()} is guaranteed to be called prior to the termination of the algorithm. We observe this is true as blocking a resource will generate the \\ BLOCKEND and RESERVATIONEND events, thus the resource will be unblocked by the \texttt{processBLOCKEND()} and \texttt{processRESERVATIONEND()} functions prior to the termination of the algorithm.
+
+    The second case is when there is a frozen flight leg ahead at resource $k$, with insufficient separation to schedule flight leg $j$ for flight $f$. When this happens, the flight leg is unable to use resource $k$ at this time, and the flight leg will not be scheduled. For any frozen blocks, a BLOCKEND event corresponding to the frozen flight leg exists, and in particular, this BLOCKEND corresponding to the flight leg ahead exists. Assume we have processed any other events up until this BLOCKEND event. If there is a sufficient separation from the current event time to the next frozen block, we can assign a TTO to flight leg $j$ for flight $f$ at the current event time of BLOCKEND. However, if there again is insufficient separation to the next frozen flight leg at this resource, all events are processed, including the BLOCKEND events at this resource, with the edge case of repeating until there are no more frozen flight legs at this resource. Given that we have a finite number of flights, and by extension a finite number of frozen flight legs, flight leg $j$ for flight $f$ is guaranteed a TTO assignment. Hence, applying the logic for all flight legs, no unscheduled flight leg will exist at termination of the DES.
+\end{proof}
+
+In the next chapter, we compare the results of the DES to the AFR/WFR model, reason which is the better choice for our simulator, and perform further analysis on the various information sharing and collaboration regimes.
+
+\section{Summary of Notation}
+
+\begin{table}[htbp]
+\caption{Notation for the DES}
+\label{tab:DESnote}
+\setlength\extrarowheight{6pt}
+\begin{tabular}{c p{0.88\textwidth}}
+\hline\hline
+$t_{now}$ & Current simulation time\\
+$H$ & Planning horizon\\
+$\mathcal{F}$ & Set of all flights\\
+$\mathcal{F}_A$ & Set of active flights that are visible to air traffic planners in the region\\
+$\mathcal{F}_C$ & Set of completed flights\\
+$\mathcal{N}$ & Set of all nodes; consists of both waypoints and airports\\
+$\mathcal{A}$ & Set of all arcs\\
+$\mathcal{K}$ & Set of all node-channel resources in the network\\
+$\mathcal{Y}$ & Set of all event types\\
+$f$ & Flight $f\in \mathcal{F}$\\
+$n$ & Node $n\in \mathcal{N}$\\
+$k$ & Resource $k\in \mathcal{K}$\\
+$y$ & Event type $y\in \mathcal{Y}$\\
+$P_f$ & Acyclic flight path, consisting of an ordered set of nodes associated with flight $f$: $(n_1, n_2, ..., n_{|P_f|})$\\
+$\underline{d}_{fj}$ & Minimum duration for flight $f$ to transit from node $n_j$ to node $n_{j+1}$ in path $P_f$, excluding hold times\\
+$\overline{d}_{fj}$ & Maximum duration for flight $f$ to transit from node $n_j$ to node $n_{j+1}$ in path $P_f$, excluding hold times\\
+${\widetilde{d}}_{fj}$ & Preferred duration for flight $f$ to transit from node $n_j$ to node $n_{j+1}$ in path $P_f$, excluding hold times\\
+$t_{fj}$ & Target Time Over (TTO) at the $j^{th}$ node in path $P_f$ for flight $f$\\
+${\widetilde{t}}_{fj}$ & Scheduled TTO at each node for flight $f$ at node $n_j$ in path $P_f$\\
+$\prescript{}{j}t_f$ & TTO of the node previous to $n_j$ for flight $f$. in path $P_f$\\
+$r(n_j)$ & FIR responsible for flights over node $n_j$\\
+$h_{fj}$ & Holding time for flight $f$ at node $n_j$ in path $P_f$\\
+$c_{fj}$ & Channel assignment for leg $j$ of flight $f$\\
+$\delta_{fj}$ & Minimum required separation at channel $c_{fj}$\\
+$b(n,c,f)$ & Block of time reserved at for flight $f$ at node $n$ and channel $c$\\
+$u^k$ & Boolean indicating if resource $k$ is blocked, and if TRUE, the time which it is blocked until\\
+$Q_M$ & Master event queue\\
+$Q_n$ & Event queue at node $n$\\
+\hline\hline
+\end{tabular}
+\end{table}

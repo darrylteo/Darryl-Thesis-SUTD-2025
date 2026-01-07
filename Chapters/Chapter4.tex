@@ -1,0 +1,390 @@
+\chapter{Airport Flow Regulator}
+\label{chap4}
+On a field visit to an Air Traffic Control (ATC) tower at Changi Airport, Singapore, we had the opportunity to chat with an ATC officer, whose role is to strategically handle aircraft movement at Changi Airport, prioritizing safety and efficiency. Throughout the tour, we got to see the day-to-day operations of ATC officers, leading us to develop a clearer understanding of a day in the life of an ATC officer, the tools they use, and some of the challenges they face. ATC officers operate on a shift work basis, and the first thing ATC officers see upon starting their shift is a stream of arriving and departing flights. It is their primary role to provide instructions to pilots on which runway to use for take off or landing, necessary ground or airborne holding procedures, and offer guidance on potential disruptions in the surrounding airspace. Often, it is the stream, either arrival or departure, with the greatest "pressure", that is prioritized for runway use. Here, stream pressure is defined as the number of flights requesting use of the runway in the near future. This interaction motivated our formulation of the Airport Flow Regulator (AFR), and in particular, the queue pressure algorithm.
+
+Most of the time, air traffic control (ATC) officers adhere to the conventional First-Come-First-Served (FCFS) sequencing of aircraft. As the name of the algorithm implies, aircraft that are ready for arrival or departure, will be sequenced on the appropriate runway according to the requested runway time that was provided to the ATC officer. This time is often known as the estimated time of arrival or departure. However, the FCFS algorithm is known to be inefficient in practice, causing unnecessary system delays \parencite{Prakash2021}. We highlight that the key difference between scheduled time and estimate time, is that the scheduled time is based on the flight plan, and is fixed in advance, while the estimated time may be updated as more accurate information is received on the flight status. In this chapter, scheduled time and estimated time would be used for scheduling flights under the FF-ICE R0 and FF-ICE R1 information regime, respectively.
+
+As described in Section \ref{sec:AFR}, the AFR will be modeled as a flow problem, rather than a runway sequencing problem. The concept for both problems are identical, except that the flow regulation problem models all flights with identical required separation times, while the runway sequencing problem has greater fidelity, with aircraft weight classes influencing the required separation times. The flow regulation formulation was selected as it aligns more closely with the overarching theme of this dissertation on ATFM, making it a more appropriate modeling choice in this context. As such, the distance and time based separation for aircraft of various weight classes \parencite{ICAO2016}, would be replaced by our computations of a minimum required separation time, derived based on the published flight plans for each airport. The AFR would decide which channel, either the arrival, departure or common, is to be assigned, as well as the ground or airborne holding time, if any, for all active aircraft. While no objective function is explicit in both the Queue Pressure (QP) and FCFS algorithm, the performance of both algorithms would be measured by the makespan of the available channels, where a lower makespan is preferred, as this indicates improved capacity utilization.
+
+We first proceed with the derivation of minimum required separation times from capacity envelopes, then the mathematical formulation, followed by the QP and FCFS approaches. Finally, we compare the performance of the QP algorithm against the FCFS algorithm for a regular and reduced capacity scenario based on published flight schedules in the ASEAN Plus region.
+
+%--------------------------------------------------------
+\section{Capacity Envelope}
+\label{sec:envelope}
+A capacity envelope represents the amount of flow that can pass through a resource per unit time. This is often approximated as a convex polygon that defines the maximum number of arrivals, departures and total operations for airports, and throughput for sectors. In studies done by Balakrishnan \parencite{Balakrishnan2014} and separately, by Tan \parencite{Tan2021}, capacity envelopes have been modeled both at the sector level, and the airport level. Capacity envelopes are dictated by factors including but not limited to weather conditions, configuration of active runways, and ATC workload. For the purpose of this chapter, we focus only on capacity envelopes for airports, since most of the airspace congestion occurs near airports. A notable exception is the Afghanistan airspace whose capacity limits traffic between Europe and Southeast Asia. However, we also note that the same computations can be identically applied to waypoints or airspace sectors.
+
+Figure \ref{fig:envelope} depicts the capacity envelope of Changi Airport's runway activity in 15-minute time increments. The horizontal and vertical axis represents the number of arrivals and departures per 15 minutes, respectively. The size of the circles represent the frequency of time blocks where the arrival-departure combination was observed. The capacity envelope is then the convex hull of the plotted points. For modeling reasons, we do not use the convex hull, but instead use the intersection of the maximum flow of arrivals, departures and total operations. An illustration of the intersection is given in the shaded area of Figure \ref{fig:envelope2}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{Figures/envelope.pdf}
+    \caption{Runway Activity Density Plot for Changi Airport, Singapore (SIN/WSSS) \parencite{Tan2021}}
+    \label{fig:envelope}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 0.8\textwidth]{Figures/envelope2.pdf}
+    \caption{Capacity Envelope as Intersection of Lines}
+    \label{fig:envelope2}
+\end{figure}
+
+For Figure \ref{fig:envelope2}, we denote $x$ and $y$ as the number of arrivals and departures per unit time, respectively. The parameters $\overline{x}$, $\overline{y}$ and $\overline{z}$ then denote the maximum number of arrivals, departures and total operations per unit time respectively. We note that if the maximum number of operations $\overline{z}$ is greater than the sum of the maximum number of arrivals and departures $\overline{x}+\overline{y}$, then the diagonal constraint $x+y\leq \overline{z}$ will be redundant and the feasible shaded area will be just a rectangle. Conversely, if the maximum number of operations per unit time is lower than either the maximum number of arrivals or departures, the diagonal line could be shifted so far to the left that the feasible shaded area gets transformed into either a trapezium or triangle. We note, however, that this should never happen in practice. These possibilities are captured using the minimum function in the following mathematical formulation of the capacity envelope in the next paragraph.
+
+We propose for the capacity envelope to be mathematically equivalent to a three-runway system (or a three-channel system using prior terminology), using flow regulation at the pre-tactical planning phase. We supplement the following notation: $a$, $b$ and $c$ shall denote the minimum required separation time between aircraft on the arrival, departure, and common channel respectively. Also, the parameters $\overline{x}$, $\overline{y}$ and $\overline{z}$ shall denote the maximum number of arrivals, departures and total operations per unit time respectively, where we define a single unit of time, or time interval to be $h$. For each time interval $h$, the following equations hold:
+\begin{equation}
+\frac{h}{a}+\frac{h}{b}+\frac{h}{c}=\min\{\overline{z},\overline{x}+\overline{y}\},
+\end{equation}
+\begin{equation}
+\frac{h}{b}+\frac{h}{c}=\min\{\overline{x},\overline{z}\},
+\end{equation}
+\begin{equation}
+\frac{h}{a}+\frac{h}{c}=\min\{\overline{y},\overline{z}\}.
+\end{equation}
+The first equation can be interpreted as: the sum of the maximum number of aircraft utilizing the arrival $\frac{h}{a}$, departure $\frac{h}{b}$ and common $\frac{h}{c}$ runway are equal to the minimum of the maximum total number of operations $\min\{\overline{z},\overline{x}+\overline{y}\}$. The other maximum departures and arrivals are represented similarly by the other two equations. We subsequently rearrange the equations to solve for the separation times:
+\begin{equation}
+a=\frac{h}{\min\{\overline{z},\overline{x}+\overline{y}\}-\min\{\overline{x},\overline{z}\}},
+\end{equation}
+\begin{equation}
+b=\frac{h}{\min\{\overline{z},\overline{x}+\overline{y}\}-\min\{\overline{y},\overline{z}\}},
+\end{equation}
+\begin{equation}
+c=\frac{h}{\min\{\overline{x},\overline{z}\}+\min\{\overline{x},\overline{z}\}-\min\{\overline{z},\overline{x}+\overline{y}\}},
+\end{equation}
+where division by zero is interpreted as the unavailability of the corresponding channel. These channel separation times can now be used as parameters in the AFR algorithm. Note that for the common channel, the minimum required separation time is applied equally regardless of whether the leading or trailing flight is an arrival or departure, aligning with our modeling of a flow regulator.
+
+The bounds on the capacity envelope are derived from OAG historical data \parencite{OAG2024a}, in the same manner as done by Tan \parencite{Tan2021}. The takeoff and landing times for each aircraft were used if the data are available, otherwise they are approximated by adding or subtracting a five-minute taxi duration to the scheduled departure or arrival time at the gate, respectively.
+
+The key point is that if the flights are assigned a channel time that satisfy the flight separation times in the three channels, then the overall flow of aircraft into and out of the airport will satisfy the given capacity envelope. The suitability of modeling capacity envelopes as channel separation times are found to be reasonable, with the results provided in Section \ref{sec:compRes}.
+
+% The use of capacity envelopes to model node capacities was as expected, where the number of flights at each airport obeyed the capacity enveloped, irrespective of the conversion to separation times. The bubble plot in Figure \ref{fig:bubbleEnvelope} depicts the number of arrivals and departures using a bubble plot, where the radius of the bubble is proportional to the number of 15 minute intervals matching the number of arrivals and departures on the axes. This graph was plotted after the simulation for the FF-ICE simulator was run for four simulated hours, using our choice of algorithm, the discrete event simulator in \ref{chap6}. We see that none of the bubbles exceed the capacity envelope, given in dotted lines, and on this basis, will continue with the use of converting capacity envelopes into separation times for the rest of the paper.
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width = \textwidth]{Figures/CapacityEnvelopesBaseCase.pdf}
+%     \caption{Frequency counts and capacity envelopes under base case for six major airports: Singapore (WSSS), Manila (RPLL),
+% Jakarta (WIII), Bangkok (VTBD), Kuala Lumpur (WMKK), and Hong Kong (VHHH). Frequencies are based on arrival-departure
+% counts in 15-min. intervals.}
+%     \label{fig:bubbleEnvelope}
+% \end{figure}
+
+%--------------------------------------------------------
+\section{Mathematical Formulation}
+As described in Section \ref{sec:envelope}, the capacity envelope has been transformed into an equivalent minimum required separation time in the context of a flow regulator. The minimum required separation times are applied identically to all flights using the specified runway, independent of the weight class or operation type of the leading or trailing aircraft. 
+
+We let separation times be denoted by $\delta_p, p\in\{A, D, C\}$ with $\delta_A$, $\delta_D$, and $\delta_C$ representing the terms from the previous notation of $a$, $b$, and $c$ --- the minimum required separation time at the arrival, departure and common channel respectively. We express the time an aircraft uses a channel using the variable $t^p_f$ to represent the time of an aircraft at channel $p$, and of flight index $f$. We have $p\in\{A, D, C\}$ for the arrival, departure or common channel, and $f\in\mathcal{F}$, with $\mathcal{F}$ representing the set of aircraft to be sequenced at the given airport. Note that an aircraft would depart from one airport and arrive at another, pairwise distinct airport. Therefore, in the AFR formulation, for the same flight $f$, its flight index $f$ is not necessarily the same at both airports.
+
+The AFR problem shares similar attributes to the Job Shop Scheduling Problem (JSSP). For the JSSP, $n$ jobs must be scheduled on $m$ machines in a way that minimizes the makespan, while accounting for the processing time for each job. For the AFR problem, $|\mathcal{F}|$ aircraft must be scheduled on one of three different channels $p\in\{A, D, C\}$, while accounting for the minimum required separation time between each aircraft. Both are NP-complete problems and combinatorial in nature. We draw inspiration from the paper \parencite{Adams1988}, on a bottleneck procedure for the JSSP, through selecting flights to schedule based on the bottleneck queue, and comparing the results against an FCFS scheduling algorithm.
+
+For the AFR, we make the assumption that no early landing or takeoff are possible, and no upper bound is placed on the time of landing or take off. The second point is justified by the fact that we do not allow flight cancellations. Additionally, since in both the queue pressure and FCFS algorithms, flights are scheduled based on their position on either the arrival or departure queue, and the separation time is independent of aircraft weight category or operation type, no particular flight will be inequitably delayed. When the mixed channel is selected, both algorithms only decide whether to schedule an arrival or departure flight, that is at the front of its respective queue. Since the order of either the arrival or departure flights are never changed, the order precedence relationship for both queues hold. The proof of the invariability of the order precedence relationship is provided in Proposition \ref{prop:orderprecedence}.
+
+\begin{proposition}
+\label{prop:orderprecedence}
+    If the scheduled arrival or departure time for flight $i$ is earlier than that of flight $j$, where flight $i$ and $j$ are of the same operation type, flight $i$ will be scheduled by either algorithm at a time not later than flight $j$. This maintains the order precedence relationship for flights of the same operation type under both scheduling algorithms.
+\end{proposition}
+\begin{proof}
+    Given that flight $i$ and $j$ are of the same operation type, they will be placed in the same queue. Assume this to be the arrival queue, with the scheduled arrival time for flight $i$ to be earlier than that of flight $j$. For the arrival queue, the flight with the earliest scheduled time in the queue, is invariably prioritized to be scheduled next by both scheduling algorithms, when a channel suitable for arrivals is chosen. Given that we pick the channel with the earliest available time to schedule a flight, $s_p$ and say, we fix flight $i$'s channel time at time $s_p$. Subsequently, the next earliest available time to schedule an arrival flight, say time $s_{p'}$, will never be earlier than $s_p$, that is, $s_p\leq s_{p'}$. This implies that when the scheduled arrival time of flight $i$ is less than that of flight $j$, flight $i$ will always be assigned a channel time no later than that of flight $j$. The proof for the departure queue follows the same line of reasoning.
+\end{proof}
+
+The parameters for the AFR are the earliest available aircraft time $\underline{t}_f$, the earliest available channel time $s_p$ for each channel $p\in\{A, D, C\}$, and the minimum required separation times $\delta_p$ for each channel $p\in\{A, D, C\}$. The decision variables are the indicator variable for whether flight $f$ uses channel $p$, $\mathbb{1}_{fp}$, and the time at which flight $f$ uses channel $p$, $t_f^p$. Here, we define $\mathbb{1}_{fp}$ as:
+\begin{equation}
+    \mathbb{1}_{fp} = \begin{cases}
+      1 & \text{if flight $f$ is assigned to channel $p$,}\\
+      0 & \text{otherwise.}
+    \end{cases}
+\end{equation}
+
+The first set of constraints in the AFR problem is that all aircraft observe the minimum required separation between aircraft, for all channels. This may be formulated as:
+\begin{equation}
+    |t^p_f - t^p_{f'}| \geq \delta_p \ \ \forall f\in\mathcal{G}_p, p\in\{A, D, C\},
+\end{equation}
+where $\mathcal{G}_p = \{f:\mathbb{1}_{fp}=1\}$, that is, the set of flights of which have been assigned to channel $p$.
+
+The next set of constraints is that each flight must be assigned to exactly one channel. This is captured with the following constraint formulation:
+\begin{equation}
+    \sum_{p\in\{A, D, C\}}(\mathbb{1}_{fp}) = 1 \ \ \forall f\in\mathcal{F}, (f,p)\in\mathcal{G}.
+\end{equation}
+
+The next set of constraints prescribe the possible assignment of flights to channels. Let $\mathcal{F}_A$ and $\mathcal{F}_D$ denote the set of arrival and departure flights, respectively, we then have that:
+\begin{equation}
+    \mathbb{1}_{fA} = 0 \ \ \forall f \in \mathcal{F}_D,
+\end{equation}
+\begin{equation}
+    \mathbb{1}_{fD} = 0 \ \ \forall f \in \mathcal{F}_A,
+\end{equation}
+which designates that arrivals are prohibited from being assigned to the departure channel, and similarly, that departures are prohibited from being assigned to the arrival channel.
+
+All flights are also constrained to be scheduled only at or after its earliest aircraft time $\underline{t}_f$ using:
+\begin{equation}
+    t_f^p\geq\underline{t}_f \ \ \forall p\in\{A, D, C\}, f\in\mathcal{F}.
+\end{equation}
+
+The final set of constraints are the channel availability constraints. Let $\mathcal{P}^0$ denote the set of channels at an airport that are unavailable, where an unavailability is defined as when the denominator of the equations for $a$, $b$ and $c$ in Section \ref{sec:envelope} is equal to zero. The channel availability constraints can then be described as:
+\begin{equation}
+    \mathbb{1}_{fp} = 0 \ \ \forall f \in \mathcal{F}, p \in \mathcal{P}^0.
+\end{equation}
+
+The objective function, would be to minimize the makespan, mathematically stated as:
+\begin{equation}
+    \underset{\mathbb{1}_{fp},t^p_f}{\rm minimize} \ g(\mathbb{1}_{fp},t^p_f) =\sum_{p\in\{A,D,C\}}(s_p - s_0),
+\end{equation}
+where $s_0$ denotes the current simulation time, that is, the earliest time the first flight may be sequenced, and $s_p$ here denotes the earliest available time to schedule the next flight on channel $p$, after the AFR algorithm has run to completion for the given airport.
+
+The AFR problem may then be summarized as to determine values for the choice of channels $\mathbb{1}_{fp}$ and flight channel time $t^p_f$ for all flights $f\in\mathcal{F}$, subject to all constraints specified above, such that the makespan is minimized. 
+
+%--------------------------------------------------------
+\section{Queue Pressure}
+\label{sec:QP}
+We devise a queue pressure algorithm to regulate flow at airports, based on the idea of identifying and prioritizing scheduling of bottlenecks. This bottleneck concept has been applied in \parencite{Adams1988}, and is also a natural way of scheduling tasks. Say, for example, the post office is assigned the task of processing parcels, and the driver is assigned the task of delivering these parcels to their destination. If we assume that the post office is very quick at processing parcels, and has more parcels ready for delivery than the driver can handle, the driver is the bottleneck of this system. A natural response would be to target improvements at the bottleneck, for example, hire more drivers. In the same vein, we devise the queue pressure algorithm along the overarching theme of identifying which queue, either the arrival or departure queue, is a bottleneck, and prioritize the scheduling of the next aircraft from this queue.
+
+We first split the flights by their operation type into two queues, the arrival and departure queue, which are both to be sorted by the earliest available aircraft time $\underline{t}_f$. We remove flights from their respective queues once they have been scheduled.
+
+Given that there are still flights to be scheduled, in either the arrival or departure queue, or both, the queue pressure algorithm first selects the channel $p$ with the earliest available time $s_p$:
+\begin{equation}
+    p = \underset{p}{arg\,min}\{s_p\}
+\end{equation}
+Here, unavailability of a runway will have its earliest available time $s_p$ set at time infinity, so it will never be selected at this step.
+
+If the selected channel $p$ is either the arrival or departure channel, and if the corresponding queue is non-empty, assign the next flight from the corresponding queue to this channel. Set the earliest available channel time at the latter time between the earliest channel available time $s_p$ and the earliest available aircraft time $\underline{t}_f$, of the first aircraft in queue $q$, plus the required separation time at this channel $\delta_p$, 
+\begin{equation}
+    s_p = max\{s_p, \underline{t}_f\} + \delta_p \text{ if the queue $q$ is non-empty.}
+\end{equation}
+Also, set the holding time of this aircraft, which is to be passed into the waypoint flow regulator, as the time that $\underline{t}_f$ must be delayed by to be scheduled on the channel at the time $s_p$. The holding time is conditioned to be non-negative, that is, the holding time will be set at $\max\{0,s_p-\underline{t}_f\}$. As the holding time is not used by the AFR, we do not notate it here, and we just point out that it first appears in Section \ref{sec:MF} as $h_{fj}$.
+
+If either the arrival or departure channel is selected, and its corresponding queue is empty, we set the earliest available channel time to a large value such that it does not get selected again for the current iteration of the algorithm,
+\begin{equation}
+    s_p = INF \text{ if the queue $q$ is empty.}
+\end{equation}
+
+If the common channel is selected, more thought is required, as it may be feasible to schedule either an arrival or departure flight. First, if either the arrival or departure queue is empty, the choice is obvious. We schedule an aircraft from the non-empty queue. However, when both queues have remaining aircraft to be scheduled, we first perform a preliminary check to see if the first aircraft in a queue may be assigned without delaying aircraft from the other queue. This also leads to an obvious choice, to schedule the first aircraft from the queue that does not delay aircraft from the other queue. We summarize this choice as scheduling an aircraft from the departure queue if the following condition holds:
+\begin{equation}
+    max\{s_p, \underline{t}_f\} + \delta_p \leq \underline{t}_{f'}.
+\end{equation}
+Here, $f$ and $f'$ represent the flight index of the first flight in the departure and arrival queue respectively. We schedule an aircraft from the arrival queue under the same condition, but instead let $f$ and $f'$ represent the flight index of the first flight in the arrival and departure queue, respectively. The scheduling is done in the same manner as above.
+
+The queue pressure is computed by provisionally assigning flights from a single queue $q$, on any of its available channels $\mathcal{P}^q$, until a gap in time occurs, while keeping track of the sum of delays. We denote the flights that are in queue $q$, with no gaps to yet occur, as $\mathcal{F}^q$. A gap is defined as occurring when an aircraft with its earliest available aircraft time $\underline{t}_f$ is strictly later than the earliest available channel time $s_p$, that is, $\underline{t}_f > s_p$. A delay is defined as $s_p-\underline{t}_f$ where $\underline{t}_f \leq s_p$. Hence, we define the queue pressure, for queue $q$ as:
+\begin{equation}
+    \pi_q = \sum_{p\in\mathcal{P}^q}\sum_{f\in\mathcal{F}^q} \left(s_p-\underline{t}_f\right),
+\end{equation}
+where $s_p$ is updated at every provisional assignment in the same manner as above.
+
+If the preliminary check fails, we employ the concept of queue pressure to select the queue from which to schedule the next flight from. Only when we get to this point, does the queue pressure algorithm differ significantly from the FCFS algorithm. For each queue, we provisionally assign aircraft to either the common channel, or its dedicated arrival or departure channel, if available, and compute the queue pressure $\pi_q$ for each queue $q\in\{A,D\}$. We then schedule the first flight from the queue with the highest queue pressure. If the queue pressure of both queues are equal, we then compare the earliest aircraft time of the first flight in both queues and schedule the flight with the earlier, earliest aircraft time. If the earliest aircraft time for both queues are equal, then we arbitrarily schedule the flight from the arrival queue first. This is because, all else being equal, arrivals should be prioritized over departures due to airborne holding for arrivals, being operationally more expensive than ground holding for departures.
+
+Figure \ref{fig:qpexample} illustrates computation of queue pressure for the departure queue. The solid bars represent the minimum required separation time, the striped bars represent the delays, and the stacked striped bars represent the sum of delays, that is, the queue pressure. The aircraft symbols at the right represent the earliest time an aircraft can be scheduled $\underline{t}_f$, with a lower position representing an earlier time. The gray aircraft have been scheduled in a previous iteration, and black aircraft are being provisionally assigned in the current iteration. The top of each solid bar delineates the earliest available channel time at each iteration $s_p$. To illustrate a computation for delay, the highest horizontal line, at the top of the black bar above flight 11, represents the value of $s_p$ at the appropriate iteration, and the second highest horizontal line, aligned at flight 13, is the earliest aircraft time $\underline{t}_{13}$, and the delay at this iteration is equal to $s_q - \underline{t}_{13}$. Also, the left brace with the word "GAP" denotes that a gap occurred, when the departure channel was selected, and the next aircraft to be assigned would not be delayed, that is, $\underline{t}_{14} > s_p$. Intuitively, this means that any flight, from flight 14 and onward, are not part of the current queue and do not contribute any queue pressure at the current assignment step.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/qpexample bw.pdf}
+    \caption{Illustrative Computation of Queue Pressure for the Departure Queue}
+    \label{fig:qpexample}
+\end{figure}
+
+We summarize the queue pressure algorithm in Algorithm \ref{alg:qpalgo}. Algorithm \ref{alg:qpassign} is called if the mixed channel is chosen, and assigns flights based on the queue pressure computation, which is called by Algorithm \ref{alg:qpget}. We also have Algorithm \ref{alg:qparrass} and \ref{alg:qptmpass} to assign flights in the global and provisional computation environment, respectively. Here, we denote $\mathcal{F}$, $\mathcal{F}_A$, and $\mathcal{F}_D$ to contain the information regarding a flight's earliest available aircraft time $\underline{t}_f$, and the operation type $q\in\{A, D\}$. Denote $\mathcal{F}_{new}$ as a construct in the global environment to record the channel assigned and hold time for each flight. We also require $tmp\_\mathcal{F}_p$ to represent the provisional queue, such that provisional flight assignments are done separately from actual flight assignments. Also, let $s_p$ for all channels $p\in\{A,D,C\}$ be global variables available to all algorithms. We treat $tmp\_s_p$ in the same way, except it $s_p$ is used for actual flight assignment, while $tmp\_s_p$ is used for provisional flight assignment.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{Queue Pressure Algorithm($\mathcal{F}$)}}
+\label{alg:qpalgo}
+$\mathcal{F}_{new}\gets\emptyset$;\\
+$\mathcal{F}_A\gets \mathcal{F}$ for which operation type $q = A$;\\
+$\mathcal{F}_D\gets \mathcal{F}$ for which operation type $q = D$;\\
+sort($\mathcal{F}_A$); sort($\mathcal{F}_D$);\\
+\While{$\mathcal{F}_A\neq\emptyset$ $\text{OR}$ $\mathcal{F}_D\neq\emptyset$}{
+    $p = \underset{p}{arg\,min}\{s_p\}$ \tcp*{an unavailable runway would have $s_p = INF$}
+    \uIf{$p == A$} {
+        \uIf{$\mathcal{F}_A == \emptyset$} {
+            $s_A = INF$
+        } \uElse {
+            \texttt{Assign Flight($\mathcal{F}_A,A$)} \tcp*{Assign flight from arrival queue to arrival channel}
+        }
+    } \uElseIf{$p == D$} {
+        \uIf{$\mathcal{F}_D == \emptyset$} {
+            $s_D = INF$
+        } \uElse {
+            \texttt{Assign Flight($\mathcal{F}_D,D$)};
+        }
+    } \uElse {
+        \uIf{$\mathcal{F}_A == \emptyset$ OR $max\{s_p, \underline{t}_f\} + \delta_p \leq \underline{t}_{f'}$} { 
+            \tcp{with $f$ as first flight in departure queue and $f'$ as first flight in arrival queue}
+            \texttt{Assign Flight($\mathcal{F}_D,C$)};           
+        } \uElseIf{$\mathcal{F}_D == \emptyset$ OR $max\{s_p, \underline{t}_f\} + \delta_p \leq \underline{t}_{f'}$} { 
+            \tcp{with $f$ as first flight in arrival queue and $f'$ as first flight in departure queue}
+            \texttt{Assign Flight($\mathcal{F}_A,C$)};
+        } \uElse{
+            \texttt{Queue Pressure Assign($\mathcal{F}_A$,$\mathcal{F}_D$)};
+        }
+    }
+}
+\Return{$\mathcal{F}_{new}$}
+\end{algorithm}
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{Queue Pressure Assign($\mathcal{F}_A$,$\mathcal{F}_D$)}}
+\label{alg:qpassign}
+$\pi_A =$ \texttt{Get Queue Pressure($\mathcal{F}_A$)};\\
+$\pi_D =$ \texttt{Get Queue Pressure($\mathcal{F}_D$)};\\
+\uIf{$\pi_A > \pi_D$} {
+    \texttt{Assign Flight($\mathcal{F}_A,C$)};
+} \uElseIf{$\pi_A < \pi_D$} {
+    \texttt{Assign Flight($\mathcal{F}_D,C$)};
+} \uElseIf{$\underline{t}_f < \underline{t}_{f'}$} {
+    \tcp{with $f$ as first flight in arrival queue and $f'$ as first flight in departure queue}
+    \texttt{Assign Flight($\mathcal{F}_A,C$)};
+} \uElseIf{$\underline{t}_f < \underline{t}_{f'}$} {
+    \tcp{with $f$ as first flight in departure queue and $f'$ as first flight in arrival queue}
+    \texttt{Assign Flight($\mathcal{F}_D,C$)};
+} \uElse{
+    \texttt{Assign Flight($\mathcal{F}_A,C$)};
+}
+\end{algorithm}
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{Get Queue Pressure($\mathcal{F}_q$)}}
+\label{alg:qpget}
+$f \gets $ index of first flight in queue $q$, that is, $\mathcal{F}_q$;\\
+$\pi_q \gets 0$;\\
+$tmp\_s \gets s$ \tcp*{initializes the provisional earliest channel time at all channels}
+$tmp\_\mathcal{F}_q \gets \mathcal{F}_q$ \tcp*{initializes the provisional flight queue}
+\While{$tmp\_\mathcal{F}_q\ne\emptyset$ AND $\underline{t}_f > tmp\_s_p$}{
+    \tcp{we also disable the dedicated runway that is unavailable to queue $q$ by temporarily setting the corresponding $s_p$ to a large value for the current run of Queue Pressure Algorithm}
+    $p = \underset{p}{arg\,min}\{tmp\_s_p\}$;\\
+    $\pi_q = \pi_q + (tmp\_s_p - \underline{t}_f)$;\\
+    \texttt{Provisionally Assign Flight($tmp\_\mathcal{F}_q,p$)};\\
+    $f = $ index of first flight in $tmp\_\mathcal{F}_q$;\\
+}
+\Return{$\pi_q$}
+\end{algorithm}
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{Assign Flight($\mathcal{F}_q, p$)}}
+\label{alg:qparrass}
+$f = $ index of first flight in $\mathcal{F}_q$;\\
+$s_p = max\{s_p, \underline{t}_f\} + \delta_p$ \tcp*{update the earliest channel time}
+$\mathcal{F}_q$ = $\mathcal{F}_q \backslash \{f\}$  \tcp*{remove flight from $\mathcal{F}_q$}
+$\mathcal{F}_{new}$ = $\mathcal{F}_{new} \cup \{f\}$ \tcp*{save channel assignment and holding time in a construct that will be returned at the end of the \texttt{Queue Pressure Algorithm}}
+\end{algorithm}
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{Provisionally Assign Flight($\mathcal{F}_q, p$)}}
+\label{alg:qptmpass}
+$f = $ index of first flight in $\mathcal{F}_q$;\\
+$tmp\_s_p = max\{tmp\_s_p, \underline{t}_f\} + \delta_p$ \tcp*{update the earliest channel time}
+$\mathcal{F}_q$ = $\mathcal{F}_q \backslash \{f\}$ \tcp*{remove flight from queue $q$}
+\end{algorithm}
+
+We end this section by addressing the possibility of prioritizing arrivals over departures, as mentioned in Section \ref{sec:AFR}. A variation on the queue pressure scheduling rule would be to apply a weighting factor to give priority to the arrival queue, since the fuel costs of an airborne delay are higher than those of a grounded aircraft. For example, one possible modification would be multiplying the arrival queue pressure by a weighting factor greater than 1, such as to increase the priority of the arrival queue.
+
+%--------------------------------------------------------
+\section{First-Come-First-Served}
+First-Come-First-Served (FCFS) is a well-established and intuitive scheduling algorithm commonly used in various operational contexts where simplicity and fairness are key considerations. As the name implies, under this scheduling algorithm, whichever queue contains the aircraft with the earlier earliest aircraft time, will be chosen to be assigned in the current iteration. It is commonly used to benchmark scheduling algorithms against, and in the case of the runway scheduling problem, papers such as \parencite{Bosson2016, Ma2019a, Desai2022} compare the results of their experiments against the FCFS algorithm.
+
+The FCFS algorithm will follow the same rules in Algorithm \ref{alg:qpalgo}, except, on the third line from the bottom, we replace the \texttt{Queue Pressure Assign($\mathcal{F}_A,\mathcal{F}_D$)} algorithm with the \texttt{FCFS Assign($\mathcal{F}_A,\mathcal{F}_D$)} algorithm, as presented in Algorithm \ref{alg:fcfsassign}.
+
+\begin{algorithm}
+\setstretch{1.3}
+\caption{\texttt{FCFS Assign($\mathcal{F}_A$,$\mathcal{F}_D$)}}
+\label{alg:fcfsassign}
+\uIf{$\underline{t}_f < \underline{t}_{f'}$} {
+    \tcp{with $f$ as first flight in arrival queue and $f'$ as first flight in departure queue}
+    \texttt{Assign Flight($\mathcal{F}_A,C$)};
+} \uElseIf{$\underline{t}_f < \underline{t}_{f'}$} {
+    \tcp{with $f$ as first flight in departure queue and $f'$ as first flight in arrival queue}
+    \texttt{Assign Flight($\mathcal{F}_D,C$)};
+} \uElse{
+    \texttt{Assign Flight($\mathcal{F}_A,C$)};
+}
+\end{algorithm}
+
+
+%--------------------------------------------------------
+\section{Results and Comparison of the QP and FCFS Algorithm}
+\label{sec:qpfcfscompare}
+The dataset used for our experimental runs are published flight plans for flights arriving or departing from the ASEAN Plus region on 1 Oct 2023. For the results below, we reiterate that a flight is completed from the perspective of the FIR of interest as soon as the current simulation clock exceeds the TTO of the last leg. We model a look ahead period of two hours, such that all flights with at least one active or frozen leg during the next two hours will be added into consideration for the respective optimization algorithm. For flights with all legs frozen, we still include them as other flights, and still maintain the required separation from these frozen flights where possible. We set the time shift for the sliding window at five minutes, that is, we reschedule flights for the next two hours, at every five minute interval. As such, for the results in Tables \ref{tab:QPFCFSmakespan} and \ref{tab:QPFCFSdevsq}, we are scheduling flights arriving or departing from the ASEAN Plus region on 1 Oct 2023, from 04:00:00 to 06:00:00 UTC, or 12:00:00 to 14:00:00 GMT +8. The regular airspace capacity is determined quantitatively by collecting information for the average number of flight traversals in each FIR, similar to the method employed in \parencite{Tan2021}. The reduced airspace capacity is computed by synthetically reducing the original airspace capacity to 0.80 of its original levels, rounded up to an integer value. These capacity values are then used to compute the required separation time between aircraft using the method in Section \ref{sec:envelope}. 
+% The regular capacity case contains 2649 arrival flights, and 1306 departure flights. The reduced capacity case contains 2735 arrival flights, and 1342 departure flights.
+
+The PC specifications used to run all the code are Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz with 16 GHz installed RAM. The code was written in R. The results for the AFR, for both the queue pressure and FCFS algorithms are presented in Tables \ref{tab:QPFCFSmakespan} and \ref{tab:QPFCFSdevsq}, and contain the following columns:
+
+\begin{itemize}
+    \item \textbf{Scenario and Algorithm}: The scenario, either the original or reduced capacity, and the algorithm used, either queue pressure or FCFS.
+    \item \textbf{Makespan (A, D, C, Total)}: The sum of makespan for the arrival (A), departure (D) and common (C) channel, and the total makespan summed over the three channels. Expressed in hours.
+    \item \textbf{Squared Deviation (A, D, C, Total)}: The sum of squared deviation for each flight assignment on the arrival (A), departure (D) and common (C) channel, and the total sum of squared deviation, summed over the three channels. Expressed in hours squared.
+    \item \textbf{Run Time}: Computational run time taken to run the specified algorithm and scenario, for the entire ASEAN Plus region, computed using the R library microbenchmark. Expressed in seconds.
+\end{itemize}
+
+The makespan is for channel $p$ is equal to $s_p - s_0$, where $s_0$ denotes the current simulation time, that is, the earliest time the first flight may be sequenced, and $s_p$ here denotes the earliest available time to schedule the next flight on channel $p$, after the AFR algorithm has run to completion for the given airport. We additionally computed the sum of squared deviation, to investigate if the either algorithm reduces disproportionately larger deviations from the earliest aircraft time $\underline{f}_f$. The squared deviation for any flight is computed as $(\max\{0,s_p-\underline{t}_f\})^2$, that is, the squared value of the assigned holding time, as defined in Section \ref{sec:QP}. The values reported in Table \ref{tab:QPFCFSmakespan} are summed over all airports, and for Table \ref{tab:QPFCFSdevsq}, summed across all arrivals and departures.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Optimization Results for the AFR on 1 Oct 2023 04:00:00 UTC, Within ASEAN Plus Region Dataset, with the Makespan Metric}
+    \begin{tabular}{@{}m{3cm}m{1.8cm}m{1.8cm}m{1.8cm}m{1.8cm}m{2.2cm}@{}}
+    \toprule \toprule
+    {Scenario and Algorithm}   & {Makespan (A)} & {Makespan (D)} & {Makespan (C)} & {Makespan (Total)} & {Run Time (s)} \\
+    \midrule \midrule
+    Regular Capacity, Queue Pressure & 162.11 & 120.10 & 134.14 & 416.35 & 2.30 \\
+    Regular Capacity, FCFS & 162.70 & 120.14 & 133.56 & 416.40 & 1.31 \\
+    Reduced Capacity, Queue Pressure & 171.36 & 135.91 & 150.28 & 457.55 & 2.11 \\
+    Reduced Capacity, FCFS & 171.69 & 136.03 & 149.70 & 457.42 & 1.38 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:QPFCFSmakespan}%
+\end{table}%
+
+\begin{table}[htbp]
+  \centering
+  \caption{Optimization Results for the AFR on 1 Oct 2023 04:00:00 UTC, Within ASEAN Plus Region Dataset, with the Sum of Squared Deviation Metric}
+    \begin{tabular}{@{}m{3cm}m{1.8cm}m{1.8cm}m{1.8cm}m{1.8cm}m{2.2cm}@{}}
+    \toprule \toprule
+    {Scenario and Algorithm}   & {Squared Deviation (A)} & {Squared Deviation (D)} & {Squared Deviation (C)} & {Squared Deviation (Total)} & {Run Time (s)} \\
+    \midrule \midrule
+    Regular Capacity, Queue Pressure & 15.49  & 10.10  & 9.38  & 34.97  & 2.08 \\
+    Regular Capacity, FCFS & 15.66  & 9.78  & 9.42  & 34.86 & 1.43 \\
+    Reduced Capacity, Queue Pressure & 32.91  & 39.65  & 27.64  & 100.20  & 2.29 \\
+    Reduced Capacity, FCFS & 33.14  & 39.59  & 27.65  & 100.38  & 1.35 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:QPFCFSdevsq}%
+\end{table}%
+
+We first provide our analysis for the makespan, in Table \ref{tab:QPFCFSmakespan}. The slight differences in makespan values indicate minor changes in sequencing. Looking down the column for Makespan (Total), we observe that the choice between the queue pressure algorithm and the FCFS algorithm has negligible impact on the total makespan. The difference in values for Makespan (A), Makespan (D) and Makespan (C) columns also do not differ enough for the queue pressure and FCFS algorithm to conclude that one algorithm is better than the other in minimizing makespan. We also observe that the runtimes for the queue pressure algorithm is similar to, and only slightly longer than the FCFS algorithm.
+
+Similarly for the squared deviation computational results, we observe that the difference in total squared deviation is not significant, leading us to conclude that either scheduling algorithm will be equally effective for the airport scheduler. Again, we notice small differences in values for squared deviation in all cases, and this validates that the queue pressure algorithm schedules flights differently from the FCFS algorithm, but no overall gain was to be made. 
+
+We conclude this chapter, by highlighting that the study is done from an ATFM perspective. Here, the separation times that were derived from a capacity envelope, are applied equally to all flights using the same channel or runway, regardless of aircraft weight categories. The additional scheduling rules based on queue pressure, used to select between the arrival and departure queues for assigning flights to a common runway, produced results comparable to those obtained using the FCFS algorithm. Given that the results of the FCFS algorithm are competitive with the queue pressure algorithm, we have opted to use the FCFS algorithm for the AFR component of the FF-ICE simulator. The primary motivation for this choice is the FCFS algorithm’s simplicity in interpretation and implementation, with the added advantage of slightly faster runtimes.
+
+%--------------------------------------------------------
+\section{Summary of Notation}
+We do not include notation for the capacity envelope in Section \ref{sec:envelope} as they are illustrative and not part of the AFR formulation. All other notations are summarized in Table \ref{tab:AFRnote}.
+
+\begin{table}[htbp]
+\caption{Notation for the AFR}
+\label{tab:AFRnote}
+\setlength\extrarowheight{6pt}
+\begin{tabular}{c p{0.88\textwidth}}
+\hline\hline
+$\mathcal{F}$ & Set of all flights\\
+$\mathcal{F}_A$ & Set of arrival flights\\
+$\mathcal{F}_D$ & Set of departure flights\\
+$f$ & Flight $f\in \mathcal{F}$\\
+$p$ & Channel $p\in\{A,D,C\}$\\
+$q$ & Queue $q\in\{A,D\}$\\
+$\mathcal{P}^q$ & The set of channels at an airport that are available to queue $q$, where a queue represents an operation type, either arrivals (A) or departures (D)\\
+$\mathcal{F}_q$ & Flights that are in queue $q$, $q\in\{A,D\}$\\
+$tmp\_\mathcal{F}_q$ & Flights that are in queue $q$, $q\in\{A,D\}$, and are used only for provisional scheduling in the Queue Pressure Algorithm\\
+$\mathcal{F}^q$ & Flights that are in queue $q$, with no gaps\\
+$\mathcal{G}_p$ & The set of flights where the indicator variable $\mathbb{1}_{fp}$ is equal to 1, that is, when flight $f$ has been assigned to channel $p$, $\mathcal{G}_p = \{f:\mathbb{1}_{fp}=1\}$.\\
+$\mathcal{P}^0$ & The set of channels at an airport that are unavailable\\
+$\delta_p$ & Minimum required separation time on channel $p$\\
+$t_f^p$ & Time flight $f$ uses channel $p$\\
+$s_p$ & Earliest available channel time for channel $p$\\
+$tmp\_s_p$ & Earliest available channel time for channel $p$, and is used only for provisional scheduling in the Queue Pressure Algorithm\\
+$s_0$ & Current simulation time, that is, the earliest channel time at the beginning of an iteration of AFR\\
+$\underline{t}_f$ & Earliest aircraft time for flight $f$\\
+$\mathbb{1}_{fp}$ & The indicator variable for if flight $f$ uses channel $p$\\
+$\pi_q$ & Queue pressure for queue $q\in\{A,D\}$\\
+\hline\hline
+\end{tabular}
+\end{table}

@@ -1,0 +1,242 @@
+\chapter{Air Traffic Flow Management}
+\label{chap2}
+
+%--------------------------------------------------------
+\section{ATFM Background}
+\label{sec:ATFM}
+The early beginnings of Air Traffic Flow Management (ATFM) can be traced back to the 1930s, with maps, drawings and mental computations to ensure safety of all flights. While this process was sufficient with few flights in the airspace, as the demand for air freight and passenger transport surged, in part catalyzed by World War II, it became apparent that more sophisticated services needed to be put in place to manage air traffic. In 1958, more people crossed the Atlantic by air than by sea, bringing about the Jet Age. This was a period in history which fostered a burgeoning growth in air traffic, with passenger travel growing by more than 1,000 percent from 1958 to 1977 \parencite{NATCA2019}. During this period, the Federal Aviation Administration (FAA) was created with the responsibility to handle air navigation and traffic control in the United States. By 1975, all Air Route Traffic Control Centers were equipped to receive real time, in flight data on computers, and along with the newly established Central Flow Control Facility, began to use more modern methods to regulate nationwide air traffic flow \parencite{NATCA2019}.
+
+In 1981, outdated systems and long working hours for Air Traffic Controllers (ATCs) led to stress related ailments such as hypertension occurring at abnormally high rates. These conditions culminated in a strike by Professional Air Traffic Controllers Organization in the United States. The strike concluded with 11,000 ATCs being fired by then president, Ronald Reagan. This once again beckoned the necessity of more efficient ATFM measures, as few ATCs had to bear the immense workload of the managing the flight ecosystem. Such events motivated researchers to study and propose new ATFM models for Air Navigation Service Providers (ANSPs), airlines and airports to adopt. Some early papers include \parencite{Dear1978, Odoni1987, Butler1987}. The research and advancement in technology did bear fruits, as demonstrated in 1995, when the new Denver International Airport, with ATFM measures implemented, recorded a fivefold decrease in delays compared to the old Denver Stapleton Airport \parencite{NATCA2019}.
+
+In recent years, the aviation industry has continued to grow at an astounding pace, of about 6\% annually from 2009 to 2019 \parencite{ICAO2023}. This growth was temporarily upended, when the COVID-19 pandemic caused air travel to abruptly crater in 2020. At the height of the pandemic, airline capacity fell to one third of its 2019 levels. Despite that, recovery has been swift, with 2023 passenger travels almost equivalent to that of the peak in 2019 as shown in Figure \ref{fig:recovery2023}, and revenues exceeding 2019 levels, with data given in Figure \ref{fig:iatagrowth}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width = \textwidth]{Figures/OAG recover covid.pdf}
+\caption{Total Airline Capacity 2019-2023 \parencite{OAG2024}}
+\label{fig:recovery2023}
+\end{figure}
+
+With air travel demand projected to continue growing at a Compounded Annual Growth Rate of 4.3\% from 2015 to 2035 \parencite{ICAO2019}, there exists an ever present need to develop and implement more efficient ATFM models, services and systems. We continue our discourse by describing a few common ATFM concepts, followed by ATFM objectives, phases, and procedures. Next, we will explore how Collaborative Decision-Making (CDM) plays a pivotal role in improving the efficiency, reliability and predictability of modern day ATFM.
+
+%--------------------------------------------------------
+\subsection{Common ATFM Concepts}
+\label{sub:commonATFM}
+This subsection introduces some of the common ATFM concepts that will be used throughout this dissertation.
+
+\begin{itemize}
+    \item Flight Information Region (FIR): An FIR is a specified region of airspace that is delegated to be controlled by an Area Control Center (ACC). In the U.S. such centers are named Air Route Traffic Control Center (ARTCC). Smaller countries may be contained within a single FIR, while larger countries may have their airspace split into multiple FIRs. The division of airspace is performed via international agreement, through the International Civil Aviation Organization (ICAO).
+    \item 4D trajectory: The 4D trajectory of an aircraft integrates the dimension of time into the spatial 3D path. This implies the 4D trajectory consists of the routing information (space) and time at each point of the flight (time). This term is commonly used in Single European Sky ATM Research (SESAR) and Next Generation Air Transportation System (NextGen). For the remainder of this dissertation, a path refers to a time independent sequence of nodes or vertices, while a trajectory refers to a time dependent sequence of nodes or vertices.
+    \item Waypoint: A waypoint is a geographical node that can be used to define a flight path, most often used for flight routes using area navigation (RNAV). Waypoints are defined in terms of longitude and latitude.
+    \item Standard Instrument Departure Route (SID) and Standard Arrival Route (STAR): A SID is a route from the take-off phase to the en-route phase of a flight. A STAR is a route from the en-route phase to the initial approach for landing. Both the SID and STAR a pilot intends to use are often included in the submitted flight plan.
+    \item En-route: The en-route phase of a flight begins after the flight completes the SID, and ends when it enters a STAR.
+    \item Terminal Maneuvering Area (TMA): A TMA is an area of controlled airspace near major airport where there is normally a high density of air traffic. It is often delineated as a circular boundary centered on the airport.
+\end{itemize}
+
+
+%--------------------------------------------------------
+\subsection{Objectives}
+\label{sub:objectives}
+The International Civil Aviation Organization (ICAO) defines ATFM as a service established with the objective of contributing to a safe, orderly and expeditious flow of air traffic by ensuring that Air Traffic Control (ATC) capacity is utilized to the maximum extent possible, and that the traffic volume is compatible with the capacities declared by the appropriate Air Traffic Service (ATS) authority \parencite{ICAO2016}. These goals may be achieved through effective balancing of airspace demand and capacity, and minimizing fuel use, delays and potential conflicts. Such procedures are discussed in Section \ref{sub:procedures}. Other methods include improved services through means such as information sharing and more accurate and timely flight updates, as discussed in Section \ref{sub:CDM}.
+
+%--------------------------------------------------------
+\subsection{Phases}
+\label{sub:phases}
+ATFM is carried out in three phases, following the standards set out by ICAO's Air Traffic Management (ATM) procedures manual \parencite{ICAO2016}:
+\begin{itemize}
+    \item Strategic planning. This is when the action is performed more than one day before on which it will take effect. It is often carried out far ahead of time, typically two to six months ahead.
+    \item Pre-tactical planning. This is when the action is performed one day before which it will take effect.
+    \item Tactical operations. This is when the action is performed on the day on which it will take effect.
+\end{itemize}
+The strategic planning phase is carried out after consultations with ATC and aircraft operators, with the aim of jointly reaching potential solutions that would resolve demand and capacity imbalances. Demand forecasts for the upcoming season are assessed, and appropriate measures are taken in cases where imbalances between demand and available ATC capacity are anticipated. Some of the common ATFM measures are rescheduling flights, re-routing traffic flows, proposing to the appropriate ATC authority for a capacity adjustment (e.g. rescheduling the duty roster for traffic controllers at each facility), and identifying the need for tactical ATFM measures. The planning should, as far as reasonably practical, minimize the flight time and distance penalties, while allowing some room for the choice of routes, especially for long-range flights. As these plans are made way in advance of the day of flight, they may be adjusted according to the forecasted demand, if and when it changes.
+
+The pre-tactical planning phase consists of fine-tuning the strategic plan given access to more accurate demand and ATC capacity information as flight details for the next day should have been published and made available to all stakeholders. The aim of this phase is to optimize capacity through an effective management of available resources. A common method to optimize capacity is the re-routing of traffic flows. However, during this phase. less flexibility in re-routing is available as compared to re-routing during the strategic planning phase. Also, while tactical possibilities were identified earlier, tactical measures will be decided upon in this phase.
+
+The tactical operations phase is when the agreed tactical measures are executed to provide a smooth flow of traffic where demand would have otherwise exceeded capacity. ATC and ATFM units are responsible for monitoring the current air traffic circumstances to ensure that ATFM measures are applied with the desired effect, and to initiate corrective measures such as re-routing traffic or ground delay programs where excessive delays are reported, as to maximize the available capacity. ATC and ATFM units are also responsible for coordinating plans with the aircraft flight crew and issuing them advisories where new restrictions or delays may be imposed. Additional measures to mitigate capacity balances should be proactively implemented when unforeseen changes transpire resulting from staffing problems, flight delays, extreme weather conditions or a revision of ATC capacity.
+
+Figure \ref{fig:3phase} gives an overview of the phases of ATFM. As the crux of this thesis explores the value of information sharing and collaboration between receiving real-time flight information and collaborative ground delays under the FF-ICE R1 initiative, our focus will be on the tactical operations phase.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Figures/3 planning phases.pdf}
+    \caption{ATM Planning and ATFM Phases \parencite{ICAO2018}}
+    \label{fig:3phase}
+\end{figure}
+
+%--------------------------------------------------------
+\subsection{Procedures}
+\label{sub:procedures}
+ATFM procedures are techniques used to manage air traffic demand according to system capacity. While effective, these procedures should be implemented as early as possible in the ATFM planning process, so as to reduce disruption to normal flight operations. We first outline four common ATFM measures: runway scheduling, ground delay program (GDP), re-routing, and minutes-in-trail (MINIT).
+
+Runway scheduling may take place at all phases. For example, long-term planning and decisions, such as runway configuration and capacity allocation, are typically carried out well in advance, during the strategic phase. Runway scheduling during the pre-tactical and tactical phase involves assigning runway times to each aircraft, in a manner that satisfies the wake turbulence separation requirements, while maximizing the usage of runway capacity, and reducing delays. This task is significant and receives heavy attention due to airport runways being recognized as one of the major bottlenecks in ATFM.
+
+GDPs may take place either during the pre-tactical or tactical phase, where aircraft have their departures delayed to mitigate an imbalance of demand and capacity within the airspace or at an aerodrome. The main aim of GDPs are to minimize airborne delays through the substitution of airborne delays with ground delays with the goal of reducing operational costs. GDPs observe greater benefits when they are done in a collaborative manner \parencite{ICAO2018}, as it is likely that the reserved time slots have to be revised at both the origin and destination aerodrome.
+
+Re-routing of flights can take place either during the pre-tactical or tactical phase, where mandatory or advisory re-routing notices are promulgated to aircraft, with the aim of reducing the number of flights scheduled to arrive at a capacity constrained airspace or aerodrome.
+
+MINIT operations take place exclusively during the tactical phase, where the number of minutes between successive aircraft is changed at a boundary point. Due to the potential cascading effect of MINIT operations increasing ATC workload, regular use may suggest that other ATFM measures should have been considered.
+
+We also describe another two procedures for management of air traffic, airborne holding and speed control. Although these may sometimes be categorized separately as ATC measures, due to their common use case for handling minor demand and capacity imbalances. For the purpose of this discussion we subsume them under the more general classification of ATFM procedures.
+
+Airborne holding, commonly executed with aircraft circling racetrack-shaped holding pattern, is usually carried out when aircraft have arrived to their destination, but are unable to land due to reasons such as inclement weather or the runway being unavailable due to congestion or other reasons. Multiple aircraft may use a holding pattern simultaneously, with multiple levels existing for a holding pattern that are separated vertically by 300m or more. A single layer of a holding pattern is depicted on the left in Figure \ref{fig:holding}. Other forms of holding, include vectoring and the point merge system, with such operations are usually carried out to achieve the required separation at a boundary, or the specified runway sequencing. Here, aircraft are instructed to deviate slightly from their original route to increase or decrease the time to reach the next point in its flight trajectory. This is depicted on the right of Figure \ref{fig:holding}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/holding and vectoring.pdf}
+    \caption{Two Types of Airborne Holding}
+    \label{fig:holding}
+\end{figure}
+
+ATC may also impose speed control by requesting an aircraft to adjust its speed in a specified manner, often with the aim to maintain a required amount of separation, to absorb delay, or as an alternative to vectoring or holding patterns. 
+
+Note that ATFM procedures vary by country, with each country deciding upon its allowed and preferred operations. For example, in France and Germany, speed regulation, ground holding, the point merge system and vectoring are permitted, while holding patterns are prohibited. For the models we have developed in this paper, the ATFM procedures focused on are runway scheduling for the Airport Flow Regulator (AFR) in Chapter \ref{chap4}, and airborne holding and speed control for the Waypoint Flow Regulator (WFR) in Chapter \ref{chap5}. Additionally, the Discrete Event Simulation (DES), which has full control of the entire flight trajectory, may utilize all the ATFM procedures used by the WFR and AFR.
+
+%--------------------------------------------------------
+\section{Key Areas of ATFM Research}
+\label{sec:research}
+ATFM research may be subdivided into a set of smaller, more specific problems. We have identified three key areas of ATFM research that are of major importance to the ATFM and wider aviation community. The first, and of the largest scope, is ATFM for complete trajectories. The next, is ATFM within the Terminal Maneuvering Area (TMA), and last, the runway scheduling problem. The extent of these subfields of research are contained within the solid, dashed and double-lined boxes in Figure \ref{fig:3scope} respectively.
+
+As a preamble to the literature review in the following subsections, the objectives and constraints for each research study may differ due to varying stakeholder aims. We have chosen to classify the problems according to its scope, based on the area of air and/or ground of which the study is focused upon. The following subsections introduces the problem and its modeling framework. It will be followed by classifying the studies by objectives, constraints, variables and algorithms chosen.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/3 scope of optimization bw.pdf}
+    \caption{Three Key Areas of ATFM Research}
+    \label{fig:3scope}
+\end{figure}
+
+While it is possible to formulate and solve for an optimal solution for these three problems simultaneously, as done by \parencite{Tan2021, Balakrishnan2014} in Flow Management Problem For Complete Trajectories, in this dissertation we will model and solve these problems in a decentralized fashion, under a rolling horizon, integrating the solution for one problem into the next. The aim of such a formulation is displaying the value of information sharing and collaboration, for a decentralized ASEAN Plus region, under various levels of regional participation. The lens through which the problem is viewed, is an operational standpoint of ATCs, where decisions are made in real time, with the scope of control limited to individual FIRs under FF-ICE R0, or multiple collaborating FIRs under FF-ICE R1. This is contrasted by the more common studies that solve the problem for an entire day or so, considering all flights for the entire time period, as a single system with a central decision maker. The problem formulation, along with other pros and cons of a decentralized model, are further discussed in Section \ref{chap3}. 
+
+The rolling horizon nature of the simulation allows us to model uncertainty and limited information. At each simulation step, the information available to each FIR is updated based on its level of information sharing. We list some examples of information that would be useful for FIRs to exchange with each other:
+\begin{itemize}
+    \item The time at which a flight is expected to enter its subsequent FIR, in particular if it differs from its scheduled flight plan;
+    \item The updated flight departure time; and
+    \item Requests for GDP to be carried out, especially during periods of high congestion.
+    % \item Changes in node capacities due to unforeseen events such as inclement weather.
+\end{itemize}
+The subroutine for flight planning within each FIR must be re-run with this new information at each time step, while maintaining the minimum required separation, and minimizing arrival delays, for all planned trajectories. A key parameter in defining a rolling horizon simulation is the planning horizon, or look-ahead time. Tactical ATFM models typically look ahead at most a few hours because forecasts beyond that time are too unreliable for tactical operations. For example, \parencite{Henry2022} and \parencite{AbbaRapaya2021} have look ahead times of 21 minutes, and 120 minutes respectively. Rolling horizon models typically split a flight into multiple phases, where the control over a flight is reduced as its TTO gets later, relative to the current situation time. For example, in \parencite{Huo2021} and \parencite{Henry2022}, flights are categorized as either 'planned', 'active', 'ongoing', or 'completed'. Similarly, we require a process for classifying flights to progressively identify TTOs that should be updated or frozen as the simulation progresses.
+
+Uncertainty is a commonly considered criterion in flight optimization, as it causes fluctuations in both airspace capacity and demand. Some studies that incorporate uncertainty include \parencite{GammanaGuruge2020} and \parencite{Bosson2016}. The study by \parencite{GammanaGuruge2020} considers the maximum and minimum times of a flight based on a generated probability distribution function and imposes an either-or constraint. The study by \parencite{Bosson2016}, has a different way of addressing uncertainty. The study first generates independent and identically distributed scenarios for each flight, then subsequently solves the problems using mixed integer linear programming (MILP), and finally, integrates and selects the solutions that minimize the expected value of the objective function.
+
+We discuss, in greater detail, how the rolling horizon captures and handles uncertainty in the subsequent paragraphs. 
+
+A common concept employed by a number of studies in our literature review is the Receding Horizon Control (RHC), also used under the more general term, sliding window or rolling horizon, in other literature. This concept was first applied to ATFM in \parencite{Hu2005}, who adapted it from control engineering. The study by \parencite{Hu2005} found that flights experience less or equal delays utilizing the RHC concept as compared to a single optimization routine carried out at the start of the day, when both experiments were evaluated using the same optimizer. More recently, \parencite{Huo2023, Ma2019, Henry2022, AbbaRapaya2021} have applied the RHC concept to address uncertainty in optimization problems and to reduce problem dimensionality.
+
+RHC looks $N$ steps ahead, in terms of a given cost function, and implements the decision at the current time step based on the observed cost function. The implemented decision at the current time step is then propagated to the next time step. This is known to be more robust against uncertainties as the online updated information is used to improve the decision at each time step \parencite{Hu2005}. This concept also benefits from a reduction in computational complexity, as most formulations render the problem computationally intractable. Hence, by limiting the variables to only that within the current time step, the RHC leads to an exponential reduction in computational time. With reference to Figure \ref{fig:sliding}, we illustrate a toy implementation of RHC, with a look-ahead of three steps and a time-shift of one step. In the first iteration, we optimize the variables pertaining to the first eight flights. In the second iteration, we optimize the variables pertaining to the fourth to the tenth flight inclusive. The algorithm terminates when the start time of the sliding window to be modified exceeds the time of last flight.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/sliding window.pdf}
+    \caption{Sliding Window Concept}
+    \label{fig:sliding}
+\end{figure}
+
+Chapter \ref{chap3} later introduces the application of RHC within the FF-ICE simulator to model and compare information sharing regimes under the FF-ICE R0 and R1 frameworks. An example of applying the sliding window concept to different information regimes is the handling of flight delay data: under FF-ICE R1, a flight delay is reflected in an earlier sliding window, whereas under FF-ICE R0, this information is only incorporated once the flight has entered the relevant FIR. This modeling approach enables the evaluation of various ground delay and flight performance metrics across the different information sharing regimes under investigation.
+
+%--------------------------------------------------------
+\subsection{Flow Management Problem for Complete Trajectories}
+\label{sub:ATFMcomplete}
+ATFM for complete trajectories considers the entire flight trajectory, from departure, to en-route, to arrival. These problems are often solved on large-scale instances and cater to the strategic and pre-tactical planning phase, as such, although shorter code execution times are still favored and have been more common in recent years, studies with code execution times of over an hour are still deemed feasible in the ATFM model in studies such as \parencite{Balakrishnan2014}. Note that the study by \parencite{Huo2023} was included despite not encompassing the departure stage, as it aligns well with this category given that the primary components of a complete trajectory are represented, albeit divided between the en-route and runway phases. Later in the Section \ref{sec:IS}, we see that a parallel may be drawn from this study to our own model of the simulator tool. Both employ a similar concept of partitioning the entire trajectory into smaller components, distinguished by their respective FIRs, which are then optimized independently.
+
+Two common approaches for modeling ATFM decisions are trajectory-based and node-based models. A trajectory-based model generates a set of possible trajectories through use of a subroutine, and the trajectories are selected through the use of binary decision variables, often via integer programming, to optimize an objective function, subject to flow constraints. Papers adopting a trajectory-based approach include  \parencite{Balakrishnan2014, Bolic2017, Huo2023, Lavandier2021, Tan2021}. Node-based models are not restricted to selecting from a set of trajectories and so have a larger state space, contributing to their modeling flexibility, at the cost of increased computational complexity. Papers adopting a node-based approach include \parencite{Alam2017, Ozgur2014}. 
+
+The objective functions chosen may be divided into two broad categories. The first are those that only minimize conflicts, done by \parencite{Alam2017, Huo2023, Lavandier2021}. The second category are those that minimize a penalty or maximize benefits, such as congestion, route charges, ground delay, or airline flight connections, done by \parencite{Balakrishnan2014, Bolic2017, Ozgur2014, Tan2021}. The papers in the second category would instead model the conflict detection and resolution as constraints.
+
+The objective function, and constraints, often dictate the choice of algorithm. For heuristic methods, such as simulated annealing, these are often modeled such that their constraints are part of the objective; while the objective and constraints are modeled separately in the case of exact methods, particularly in linear and integer programming. For example, in \parencite{Huo2023}, the algorithm chosen was simulated annealing, and the conflicts were modeled as the objective, of which the goal is to minimize. In contrast, the algorithm used in \parencite{Bolic2017} was integer programming, leading to the objective being modeled separately as minimizing the sum of deviation of departure and arrival times, operational costs, airborne costs and route charges, subject to airspace capacity constraints. Hence, we synchronously classify the algorithms in the first category as exact methods, and heuristics for studies in the second category. The benefits and drawbacks of exact and heuristic methods are further discussed in Section \ref{sec:opti}. We highlight the general rule-of-thumb, that heuristic methods are often chosen for problems that are too time-consuming to obtain an exact answer, or in other words, are computationally intractable. The algorithms used for each paper are given in Table \ref{tab:complete}.
+
+The constraints adopted by \parencite{Balakrishnan2014, Bolic2017, Tan2021} are capacity-based, reflecting ATFM research priorities by imposing limits on the number of aircraft allowed to traverse an airspace sector or node within a specified time interval. In \parencite{Bolic2017}, an additional constraint on the available runway configuration at each moment in time, was imposed. The other studies focused on separation based constraints, a central concept in TBO research, on both the spatial and temporal dimensions. This means that a constraint is imposed such that a minimum distance between all flight pairs is required. \parencite{Alam2017} considered the separation based interaction of flights in functional airspace blocks and nodes, \parencite{Huo2023} considered separations at nodes, links and runways, \parencite{Lavandier2021} considered speed covariance and proximity at reference points, and \parencite{Ozgur2014} considered both capacity based and separation based constraints. Occasionally, there have been overlaps between ATFM and TBO research, for example the research \parencite{Alam2017} is geared towards ATFM, but has conflict detection modeled as aircraft violating a protection volume around a point, instead of pure capacity constraints.
+
+Regarding the choice of variables, all studies considered departure time. Here, departure time is equivalent to ground delay, as imposing a ground delay on a flight is equivalent to increasing its departure time. All studies also considered some form of choice in re-routing, with the exception of \parencite{Lavandier2021}. Airborne speed was also considered in the papers \parencite{Balakrishnan2014, Huo2023, Tan2021}.
+
+Table \ref{tab:complete} provides an overview of the literature on ATFM for complete trajectories.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Literature Review for Flow Management Problem for Complete Trajectories}
+    \begin{tabular}{m{2cm} m{3.7cm} m{3.7cm} m{3.7cm} }
+    \toprule
+    \toprule
+    \multicolumn{1}{l}{Reference} & \multicolumn{1}{l}{Objective Function} & \multicolumn{1}{l}{Variables} & \multicolumn{1}{l}{Algorithm} \\
+    \midrule
+    \midrule
+    \cite{Alam2017} & Minimize the sum of interaction across trajectories & Departure time and trajectories & Simulated annealing and local search \\ \midrule
+    \cite{Balakrishnan2014} & Maximize the sum of revenue $+$ cancellation penalties $-$ operating costs $-$ delays & Ground delays, airborne speed, rerouting and cancellations & Integer programming and dynamic programming \\ \midrule
+    \cite{Bolic2017} & Minimize the sum of deviation of departure and arrival times, operational costs, airborne costs and route charges & Departure time and route & Integer programming \\ \midrule
+    \cite{Huo2023} & Minimize the sum of conflict and congestion & En-route phase: Alternative route and speed. TMA: Entry speed and choice of runway & Simulated annealing \\ \midrule
+    \cite{Lavandier2021} & Minimize the sum of air traffic complexity & Departure time & Selective simulated annealing \\ \midrule
+    \cite{Ozgur2014} & Minimize the sum of weighted ground delays & Departure time and route & Integer programming \\ \midrule
+    \cite{Tan2021} & Maximize the sum of net benefit and connection bonuses & Ground delays, airborne speed, rerouting and cancellations & Integer programming and dynamic programming \\
+    \bottomrule
+    \bottomrule
+    \end{tabular}
+  \label{tab:complete}
+\end{table}
+
+%--------------------------------------------------------
+\subsection{Flow Management Problem Within the Terminal Maneuvering Area}
+\label{sub:ATFMTMA}
+ATFM for the TMA only concerns itself with managing flights within the TMA. This usually involves either departing flights taking off from the runway up until exiting a SID, or arriving flights from entering a STAR up until landing on the runway. Among all controlled airspace, the TMA is the most congested airspace, with most flight conflicts being detected and resolved within the TMA. As such, optimizing the TMA independently of the complete trajectory has also been considered a critical field of research, given that the requirements are different from the complete trajectories optimization, and a stronger emphasis on conflict detection and resolution exists for ATFM targeted at the TMA level.
+
+This problem may be considered separately in terms of arrivals and departures, for two reasons. First, many airports still operate the Arrival Manager (AMAN) and Departure Manager (DMAN) as separate systems. Next, arrival and departure flights do not interact at SIDs and STARs as they are vertically separated, and although mixed mode runways are not uncommon, ATCs typically use runways as dedicated services, serving only departures or arrivals at any one runway. The studies considering arrivals only are \parencite{Henry2022, Huo2021, Bae2018}, and the studies considering both arrivals and departures are \parencite{Frankovich2012, Ma2019, Ng2023, Zhou2017}.
+
+Similar to ATFM for complete trajectories, exact methods may separate the objectives and constraints, while heuristic methods must include constraints as part of the objective. The study by \parencite{Ng2023} is unique, being the only study using integrate the results of both classes of algorithms. They utilized a sequence mutation heuristic to determine sequencing, followed by a linear program to solve the problem for the given sequence, for which the objective is to minimize flight delays. All other studies, with the exception of \parencite{Zhou2017}, are modeled with the objective function to minimize flight delays. However, the studies exhibit considerable diversity in algorithmic approaches, as summarized in Table \ref{tab:TMA}. For instance, \parencite{Zhou2017} focuses on generating SIDs or STARs that avoid all obstacles, which notably differs from the conventional ATFM objectives for TMA. This represents a valuable research direction, as SIDs and STARs are currently developed manually; the study addresses this labor-intensive process by enabling automated generation of optimized routes.
+
+The constraints chosen across all studies reviewed are consistent, where every study adopted a node-based formulation and hence all the constraints were separation based, considering conflicts at nodes, links and runways. The only variation was that runway conflicts were not considered in \parencite{Zhou2017}, and link conflicts were not considered in \parencite{Bae2018, Frankovich2012}.
+
+All studies have aircraft speed as a variable, with the exception of \parencite{Zhou2017}, as its research aim is different, as mentioned. It is reasonable to generalize choice of runway, and the use of airborne holding facilities as a choice of flight path, and this assumption aligns with all studies considering flight path as a variable. Notable variation between studies are, for example that, airborne holding for arrival flights are modeled as a variable only in \parencite{Henry2022} and \parencite{Ng2023}, with it termed "length of merge point" in the former, and "use of holding stacks and vectoring" in the latter. A point merge system is similar in concept to vectoring, as described in Section \ref{sub:procedures}, except that it has predefined paths to merge into, while vectoring relies more heavily on the skill of the ATC. Also, other differences exist, where only \parencite{Frankovich2012, Henry2022, Huo2021, Ma2019} consider multiple runways, and have therefore modeled choice of runway as a variable. In our formulation of the AFR, in Chapter \ref{chap4}, we also allow the possibility of multiple runways, where there may be more than one runway available for an arrival or departure flight to choose from.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Literature Review for Flow Management Problem for Terminal Maneuvering Areas}
+    \begin{tabular}{m{2cm} m{3.7cm} m{3.7cm} m{3.7cm}}
+    \toprule
+    \toprule
+    \multicolumn{1}{l}{Reference} & \multicolumn{1}{l}{Objective Function} & \multicolumn{1}{l}{Variables} & \multicolumn{1}{l}{Algorithm} \\
+    \midrule
+    \midrule
+    \cite{Bae2018} & Minimize the sum of flight time & Flight path and airborne speed & Combination of Dijkstra and First-Come-First-Served\\ \midrule
+    \cite{Frankovich2012} & Minimize the sum of weighted time to complete flight & Runway configuration, choice of runway and flight trajectory & Integer programming \\ \midrule
+    \cite{Henry2022} & Minimize the sum of airborne and ground delays, and node and link conflicts & Airborne speed, TMA entry time, choice of runway, and length of merge point & Q-learning, with a genetic algorithm to select Q-learning parameters \\ \midrule
+    \cite{Huo2021} & Minimize the sum of node, link and runway conflicts & Airborne speed, TMA entry time, and choice of runway & Simulated annealing \\ \midrule
+    \cite{Ng2023} & Minimize the sum of conflicts and airborne delays & Runway sequence, airborne speed and use of holding stacks or vectoring & Linear programming and sequence mutation \\ \midrule
+    \cite{Ma2019} & Minimize the sum of conflicts, airside capacity overload and time deviation & TMA entry time, TMA entry speed, choice of runway, departure runway, and departure time & Compares mixed integer linear programming and simulated annealing \\ \midrule
+    \cite{Zhou2017} & Minimize the sum of interaction with obstacles & Flight path & Branch and Bound \\
+    \bottomrule
+    \bottomrule
+    \end{tabular}
+  \label{tab:TMA}
+\end{table}
+
+%--------------------------------------------------------
+\subsection{Runway Sequencing Problem}
+\label{sub:ATFMRSP}
+The Runway Sequencing Problem (RSP) involves sequencing flights on the available runways, subject to aircraft observing separation constraints. Runway use may be segregated, allowing only arrivals or departures at a given runway, or mixed, where both arrivals and departures may be allocated on a given runway. An example of a mixed runway configuration, is having every departure aircraft being followed by 3 arrival aircraft. While mixed runways can potentially achieve a higher throughput by maximizing capacity, it is more taxing on ATC and hence, the segregated mode is utilized more commonly. Studies that include scheduling routes for aircraft beyond just arrival or departure, that is, studies that considered airport surface operations such as \parencite{Bosson2016, Desai2022, Ma2019}, have also been included for completeness, although airport surface operations are currently not a part of our research. However, we may still draw insights from these studies, given their node-based airport surface formulation is conceptually similar to our node-based airspace formulation for the WFR in Chapter \ref{chap5}.
+
+As little room for model variability exists within the limited scope of the problem, all studies have set the objective function as the minimizing the sum of time deviation from the preferred or scheduled time. The exceptions to this are \parencite{Hu2005} and \parencite{Prakash2018}, whose objective functions minimize the airborne delay and makespan respectively, which are atypical of the RSP, and presumably align with different stakeholder interests. While the majority of studies have chosen to utilize MILP to solve the RSP, given the computationally challenging nature of the problem, different approaches have been undertaken to reduce the state space, and by extension the computational times. A common approach in the studies reviewed is to iteratively reduce the problem into smaller parts until they can be solved directly, and subsequently recombining the results to obtain the final solution. This divide-and-conquer method was seen in studies \parencite{Prakash2018, Prakash2021, Desai2022} that utilize a data splitting algorithm, under the constraint that an aircraft may at most shift $k$ positions before or after its initial position, aptly named Constrained Position Shifting (CPS). The original flight dataset was divided into several pairs of disjoint subsets and solved independently, and subsequently recombined. In contrast, \parencite{Ma2019a} approached the problem from a different perspective, comparing the performance of a MILP formulation with that of simulated annealing under a fixed time constraint. Both methods were allotted a computational time limit of 10 seconds, with the optimal results obtained by solving the MILP to completion.
+% On 9 out of the 12 test cases, simulated annealing obtained results with a lower optimality gap than MILP, and across all cases, terminated in under 4 seconds for test cases of between 25 and 55 flights.
+
+Separation constraints were applied consistently in all studies reviewed, with various additional constraints imposed in some studies. For instance, \parencite{Prakash2018, Prakash2021, Desai2022} have the CPS constraint applied, \parencite{Ma2019a} constrained the maximum departure time, \parencite{Xiangwei2011} imposed a landing time window, and \parencite{Hu2005} imposed a constraint where each flight was required to clear a sector by a specified latest time.
+
+Additionally, all studies reviewed have the position and time on the runway as the optimization variable, which is standard for the RSP. Only in \parencite{Bosson2016, Desai2022} do the modeling of variables differ markedly, with the inclusion of routing, as they also consider airport surface operations. Later, as part of our model of the AFR in Chapter \ref{chap4}, we introduce an extra dimension to the RSP, by allowing flights the freedom of selecting a runway. A multiple runway sequencing model is most closely related to the study by \parencite{Xiangwei2011}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Literature Review for the Runway Sequencing Problem}
+    \begin{tabular}{m{2cm} m{3.7cm} m{3.7cm} m{3.7cm}}
+    \toprule
+    \toprule
+    \multicolumn{1}{l}{Reference} & \multicolumn{1}{l}{Objective Function} & \multicolumn{1}{l}{Variables} & \multicolumn{1}{l}{Algorithm} \\
+    \midrule
+    \midrule
+    \cite{Bosson2016} & Minimize the sum of time deviation & Route, position and time on airport surface & Mixed integer linear programming \\ \midrule
+    \cite{Desai2022} & Minimize the sum of weighted time deviation & Route, position and time on airport surface & Mixed integer linear programming with group-and-release strategy \\ \midrule
+    \cite{Hu2005} & Minimize the sum of airborne delay & Position and time on runway & Self-developed aircraft scheduling algorithm \\ \midrule
+    \cite{Ma2019a} & Minimize the sum of runway usage time and ground delay & Position and time on runway & Compares mixed integer linear programming and simulated annealing \\ \midrule
+    \cite{Prakash2021} & Minimize the sum of time deviation & Position and time on runway & Mixed integer linear programming with branch and bound \\ \midrule
+    \cite{Prakash2018} & Minimize the makespan & Position and time on runway & Mixed integer linear programming with branch and cut \\ \midrule
+    \cite{Xiangwei2011} & Minimize the sum of time deviation & Position and time on runway & Mixed integer linear programming \\
+    \bottomrule
+    \bottomrule
+    \end{tabular}
+  \label{tab:RSP}
+\end{table}

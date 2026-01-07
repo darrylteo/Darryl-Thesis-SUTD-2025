@@ -1,0 +1,385 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUTD Masters/Doctoral Thesis
+% LaTeX Template
+% Version 1.0 (29/08/16)
+%
+% Adapted to SUTD requirements by Martin Ochoa
+%
+% This template is based on a template downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Version 2.x major modifications by:
+% Vel (vel@latextemplates.com)
+%
+% which in turn was based on a template by:
+% Steve Gunn (http://users.ecs.soton.ac.uk/srg/softwaretools/document/templates/)
+% Sunil Patel (http://www.sunilpatel.co.uk/thesis-template/)
+%
+%
+% Template license:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+11pt, % The default document font size, options: 10pt, 11pt, 12pt
+oneside, % Two side (alternating margins) for binding by default, uncomment to switch to one side
+english, % ngerman for German
+onehalfspacing, % Single line spacing, alternatives: onehalfspacing or doublespacing
+%draft, % Uncomment to enable draft mode (no pictures, no links, overfull hboxes indicated)
+%nolistspacing, % If the document is onehalfspacing or doublespacing, uncomment this to set spacing in lists to single
+%liststotoc, % Uncomment to add the list of figures/tables/etc to the table of contents
+%toctotoc, % Uncomment to add the main table of contents to the table of contents
+%parskip, % Uncomment to add space between paragraphs
+%nohyperref, % Uncomment to not load the hyperref package
+headsepline, % Uncomment to get a line under the header
+]{MastersDoctoralThesis} % The class file specifying the document structure
+
+\usepackage[utf8]{inputenc} % Required for inputting international characters
+\usepackage[T1]{fontenc} % Output font encoding for international characters
+
+\usepackage{array} % table formatting
+
+\usepackage{palatino} % Use the Palatino font by default
+\usepackage[style=authoryear,natbib=true]{biblatex} % User the bibtex backend with the authoryear citation style (which resembles APA)
+
+\addbibresource{thesis.bib} % The filename of the bibliography
+\usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
+
+\hypersetup{%
+  colorlinks = true,
+  linkcolor  = black
+}
+
+%----------------------------------------------------------------------------------------
+%	MARGIN SETTINGS
+%----------------------------------------------------------------------------------------
+
+\geometry{
+	paper=a4paper, % Change to letterpaper for US letter
+	inner=2.54cm, % Inner margin
+	outer=2.8cm, % Outer margin
+	bindingoffset=1cm, % Binding offset
+	top=2.5cm, % Top margin
+	bottom=2.5cm, % Bottom margin
+	%showframe,% show how the type block is set on the page
+}
+
+%----------------------------------------------------------------------------------------
+%	THESIS INFORMATION
+%----------------------------------------------------------------------------------------
+
+\thesistitle{Quantifying the Value of Information and Collaboration in the Decentralized ASEAN Airspace Network} % Your thesis title, this is used in the title and abstract, print it elsewhere with \ttitle
+\supervisor{Dr. Nuno \textsc{Ribeiro}} % Your supervisor's name, this is used in the title page, print it elsewhere with \supname
+\examiner{} % Your examiner's name, this is not currently used anywhere in the template, print it elsewhere with \examname
+\degree{Doctor of Philosophy} % Your degree name, this is used in the title page and abstract, print it elsewhere with \degreename
+\author{Darryl \textsc{Teo}} % Your name, this is used in the title page and abstract, print it elsewhere with \authorname
+\addresses{} % Your address, this is not currently used anywhere in the template, print it elsewhere with \addressname
+\university	{SUTD}
+\keywords{} % Keywords for your thesis, this is not currently used anywhere in the template, print it elsewhere with \keywordnames
+\pillar{Engineering Systems and Design} % Pillar
+
+\hypersetup{pdftitle=\ttitle} % Set the PDF's title to your title
+\hypersetup{pdfauthor=\authorname} % Set the PDF's author to your name
+\hypersetup{pdfkeywords=\keywordnames} % Set the PDF's keywords to your keywords
+
+\begin{document}
+
+\frontmatter % Use roman page numbering style (i, ii, iii, iv...) for the pre-content pages
+
+\pagestyle{plain} % Default to the plain heading style until the thesis style is called for the body content
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\begin{titlepage}
+\begin{center}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{Figures/SUTD.pdf}
+\end{figure}
+
+\hfill\break\\[1.5cm]
+
+{\huge \bfseries \ttitle}\\[3cm] % Thesis title
+
+
+Submitted by\\[0.5cm]
+\authorname % Author name - remove the \href bracket to remove the link
+
+\vspace{3em}
+
+Thesis Advisor\\[0.5cm]
+\supname % Supervisor name - remove the \href bracket to remove the link
+\\Assistant Professor, Engineering Systems and Design
+\\Deputy Director, Aviation Studies Institute
+
+\vspace{3em}
+
+\pillarname\\[1cm] % Research group name and department name
+
+\large{A thesis submitted to the Singapore University of Technology and Design in fulfillment of the requirement for the degree of \degreename}\\[1cm] % University requirement text
+
+
+{\large \the\year}\\[2cm] % Date
+%\includegraphics{Logo} % University/department logo - uncomment to place it
+
+\vfill
+\end{center}
+\end{titlepage}
+
+%----------------------------------------------------------------------------------------
+%	DECLARATION PAGE
+%----------------------------------------------------------------------------------------
+
+\begin{tec}
+\addchaptertocentry{\tecname}
+\begin{tabular}{ll}
+	TEC Chair: & \underline{Karthik Natarajan} \\
+ 	& Professor \\
+	& --- Pillar of Engineering Systems and Design \vspace{2em}\\
+
+        Main Advisor: & \underline{Nuno Ribeiro} \\
+	& Assistant Professor \\
+	& --- Pillar of Engineering Systems and Design \\
+        & Deputy Director \\
+	& --- Aviation Studies Institute \vspace{2em}\\
+
+	Co-Advisor: & \underline{Peter Jackson} \\
+	& Professor and Former Head of Pillar \\
+	& --- Pillar of Engineering Systems and Design \\
+	& Distinguished Visiting Professor \\
+	& --- Aviation Studies Institute \vspace{2em}\\
+	
+	Internal TEC member 1: & \underline{Antonios Varvitsiotis} \\
+	& Assistant Professor \\
+	& --- Pillar of Engineering Systems and Design \vspace{2em}\\
+	
+        Internal TEC member 2: & \underline{Karthyek Murthy} \\
+	& Assistant Professor \\
+	& --- Pillar of Engineering Systems and Design \vspace{2em}\\
+\end{tabular}
+\end{tec}
+\vfill\eject
+
+%----------------------------------------------------------------------------------------
+%	DECLARATION PAGE
+%----------------------------------------------------------------------------------------
+
+% \begin{declaration}
+% \addchaptertocentry{\authorshipname}
+
+% \noindent I, \authorname, declare that this thesis titled, \enquote{\ttitle} and the work presented in it are my own. I confirm that:
+%
+% \begin{itemize}
+% \item This work was done wholly or mainly while in candidature for a research degree at this University.
+% \item Where any part of this thesis has previously been submitted for a degree or any other qualification at this University or any other institution, this has been clearly stated.
+% \item Where I have consulted the published work of others, this is always clearly attributed.
+% \item Where I have quoted from the work of others, the source is always given. With the exception of such quotations, this thesis is entirely my own work.
+% \item I have acknowledged all main sources of help.
+% \item Where the thesis is based on work done by myself jointly with others, I have made clear exactly what was done by others and what I have contributed myself.\\
+% \end{itemize}
+
+% I hereby confirm the following:
+% \begin{itemize}
+% \item I hereby confirm that the thesis work is original and has not been submitted to any other University or Institution for higher degree purposes.
+% \item I hereby grant SUTD the permission to reproduce and distribute publicly paper and electronic copies of this thesis document in whole or in part in any medium now known or hereafter created in accordance with Policy on Intellectual Property, clause 4.2.2.
+% \item I have fulfilled all requirements as prescribed by the University and provided 1 copy of my thesis in PDF.
+% \item I have attached all publications and award list related to the thesis (e.g. journal, conference report and patent).
+% \item The thesis does / does not (delete accordingly) contain patentable or confidential information.
+% \item I certify that the thesis has been checked for plagiarism via turnitin/ithenticate. The score is 100\%.
+% \end{itemize}
+
+% \noindent Name and signature:\\
+% \rule[0.5em]{25em}{0.5pt} % This prints a line for the signature
+
+% \noindent Date:\\
+% \rule[0.5em]{25em}{0.5pt} % This prints a line to write the date
+% \end{declaration}
+
+% \cleardoublepage
+
+%----------------------------------------------------------------------------------------
+%	QUOTATION PAGE
+%----------------------------------------------------------------------------------------
+
+% Uncomment for quotation page
+% \vspace*{0.2\textheight}
+%
+% \noindent\enquote{\itshape Thanks to my solid academic training, today I can write hundreds of words on virtually any topic without possessing a shred of information, which is how I got a good job in journalism.}\bigbreak
+%
+% \hfill Dave Barry
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT PAGE
+%----------------------------------------------------------------------------------------
+
+\begin{abstract}
+\addchaptertocentry{\abstractname} % Add the abstract to the table of contents
+\textit{Reimagining Air Traffic Flow Management (ATFM) --- toward a smarter, more resilient future}. While information sharing and collaborative decision-making are well-established in regions such as the United States and Europe, Southeast Asia continues to operate in a highly decentralized manner, posing significant challenges to the effective implementation of ATFM. A major undertaking to support a transition into a collaborative environment is the Flight \& Flow Information for a Collaborative Environment (FF-ICE) initiative, conceived to eliminate the limitations of the current Flight Plan system.
+
+This dissertation presents the first comprehensive quantitative study of the FF-ICE program, examining the benefits and drawbacks of an incremental FF-ICE R1 implementation in the ASEAN region. Owing to the interconnectivity, complexity, uncertainty, and decentralized nature of the ASEAN airspace, solving the ATFM problem at the scale of the entire region fails to capture the operational nuances, particularly because incremental participation is anticipated. To address this, we introduce a Rolling Horizon Concept (RHC) that more accurately represents varying levels of information sharing and aligns more closely with current operational capabilities.
+
+We present a suite of mathematical models and algorithmic routines designed to simulate decentralized ATFM systems, incorporating key constraints such as airspace capacity and aircraft separation requirements. These algorithms operate independently within each region, using the available information at each time step to optimize ATFM decisions including speed adjustments, ground delay programs and airborne holding.
+
+A realistic simulator of the ASEAN airspace network, supporting information sharing and collaborative decision-making, was developed using the proposed mathematical tools and real airspace data. The results demonstrate significant savings under various collaboration regimes. Notably, partial collaboration, even within a single country, can yield considerable benefits. The results also reveal a surprising consequence of minor collaborations, say between only two airports, that has been shown to erratically impact other flights far from the time which collaborative measures take place.
+
+\end{abstract}
+
+%----------------------------------------------------------------------------------------
+%	Publications
+%----------------------------------------------------------------------------------------
+
+\begin{publications}
+\addchaptertocentry{\publicationsname} % Add the abstract to the table of contents
+Darryl Teo, Peter Jackson, Daniel Delahaye, and Nuno Ribeiro. "Optimization-Based Simulation of Air Traffic Flow Management Within the Decentralized ASEAN Region" In: \textit{Computers \& Operations Research (Major Revision). Preprint available at: \href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5173282}{ssrn}}. Supporting paper for Chapters \ref{chap4} and \ref{chap5}.
+
+Darryl Teo, Peter Jackson, Nuno Ribeiro, Rakesh Nandi, and Gengling Dai. "Estimating the Benefits of Information Sharing and Collaboration in a Decentralized Flight Network" In: \textit{Working paper}. Supporting paper for Chapters \ref{chap6} and \ref{chap7}.
+\end{publications}
+
+\begin{presentations}
+    \addchaptertocentry{\presentationsname} % Add the abstract to the table of contents
+    Darryl Teo, Peter Jackson, and Daniel Delahaye. "Measuring the Value of Ground Delay Programs in the ASEAN Airspace" In: \textit{Presentation at the Singapore Aviation Research Technology Exchange Day (2025)}
+    
+    Darryl Teo, Peter Jackson, Nuno Ribeiro, Gengling Dai, and Rakesh Nandi. "Quantifying Airspace Network Benefits and Impacts on Non-Participating Flights Under the FF-ICE R1 Initiative" In: \textit{Presentation at the 2025 INFORMS International Meeting (2025)}
+
+    Darryl Teo, Peter Jackson, Nuno Ribeiro, Gengling Dai, and Rakesh Nandi. "Simulated Impact of the FF-ICE R1 Initiative Under Multiple Capacity Constraints and Collaboration" In: \textit{Presentation at the 28th ATRS World Conference (2025)}
+    
+    Darryl Teo, Peter Jackson, and Daniel Delahaye. "Optimization Algorithms Applied to the ASEAN Airspace" In: \textit{Presentation at the NUS SG Analytics and Operations Day 2024 (2024)}
+    
+    Darryl Teo, Peter Jackson, Nuno Ribeiro, Gengling Dai, and Rakesh Nandi. "Simulated Impact of the FF-ICE R1 Initiative With Incremental Participation" In: \textit{Presentation at the INFORMS 2024 Annual Meeting (2024)}
+    
+\end{presentations}
+
+%----------------------------------------------------------------------------------------
+%	ACKNOWLEDGEMENTS
+%----------------------------------------------------------------------------------------
+
+\begin{acknowledgements}
+\addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
+
+First and foremost, I would like to thank Prof PJ for believing in me, and giving me this amazing opportunity to pursue the PhD. To Prof PJ: From day one until now, I could not have asked for a better mentor, who exhibits the values of care, integrity, industriousness, friendliness and beyond. The way you treat everyone with respect, regardless of social status, has left a deep impression on me, and I strive to follow in your footsteps. Also, no matter how busy you were, you always found time to respond and help me with my tasks or personal matters, and I am extremely grateful for your generosity with time. I have grown so much in the past few years thanks to your mentorship, developing as a better researcher, as well as a better human, and I endeavor to emulate your example! Wishing you and your family good health and happiness.
+
+Next, I would like to thank Prof Nuno for advising my PhD for the past two years, and always offering advice and help whenever I needed it. I thank you for the knowledge you have imparted, and guidance you have generously offered over the many years we have known each other. To Prof Nuno: I am continually impressed by your ability to analyze data and offer insights that few others can. Your ability to create convincing arguments is truly admirable. I am deeply grateful to have learned from you --— your mentorship has greatly boosted my confidence in presenting and articulating my ideas. Furthermore, during our conversations, I feel as if I am talking to another Singaporean; your ability and adapt and thrive in new surroundings is a powerful and enviable trait. The stories of your adventures overseas have never failed to captivate me and opened my eyes to how big the world is. Thank you so much for your guidance and I look forward to future collaborations together.
+
+I would like to thank Prof Daniel for hosting me at Ecole Nationale de l'Aviation Civile. To Prof Daniel: Thank you for taking care of me during my stay in Toulouse, France, and beyond. It was my first time living abroad, and while scary at first, my fears dissipated soon after, in no small part due to your warmth and kindness. Your vast knowledge on aviation and reputation in the field has left me starstruck, and I am proud to have you as my mentor. In addition, your physical ability is extremely impressive --- the intensity of your cycles and mountain climbing, and frequent travels, has become a tale of legends in my book. Thank you for dropping by whenever you visit Singapore too, I am always happy to see you again. Wishing you good health, and safe travels! Merci beaucoup!
+
+I also wish to express my heartfelt gratitude to Chen Sin Chee, for being the best graduate studies manager. He has always gone above and beyond to help me whenever I face any difficulty in any administrative or personal matters. Thank you to Prof Jeffery Chan for the interesting discussions during the ethics class, and encouraging me to enroll into the PhD program. Thank you to Cecilia Radhalechumi, Samantha Septribellina, Lim Lee Chen, and Tan Siew Gan for always helping to schedule meetings and other admin matters; there has been 0 hiccups as far as I recall, amazing! Thank you to Prof Bikramjit Das and Prof Stefano Galelli for providing guidance during my term as your teaching assistant. Thank you to Li Hongbo and Ruan Yanqiu for the teamwork and support as friends and groupmates during the PhD coursework. Thank you to my project mates over the past few years --- Gengling Dai, Rakesh Nandi, Wang Weimeng, Ho Huiqi, Chua Wanyun, Faye Chiang; you have been the most amazing people to work with. Thank you to everyone in the ESD office for the welcoming environment, especially during my undergrad days. Thank you to everyone in the ASI office for making it an enjoyable place to work. Thank you to the PhD matters office for the smooth processing of all the overseas attachments and conferences I have attended. I would like to extend my sincere thanks to everyone I had the pleasure of interacting with during my time at SUTD. My experience has left me with a lasting impression of SUTD as a highly efficient research institution that offers world-class education and is home to exceptionally capable and welcoming staff and students.
+
+I would also like to thank SUTD for the generous funding provided under the PGF(CIS) scholarship, and CAAS for funding many projects within the ASI.
+
+Last but not least, I would like to thank God, and my family. I thank the Lord for blessing me with this opportunity, and keeping me from harm; I will seek your ways in all seasons of life. \textit{The heart of man plans his way, but the LORD establishes his steps. -Proverbs 16:9}. To my family: Home is where the heart is, and my heart lies with you. Thank you for being there for me, supporting and encouraging me always; the love and warmth of our family is irreplaceable.  My mother's favorite quote: "A watermelon in a box will end up square.". Given that the shape of a watermelon is determined by its surroundings, I hope to pursue the next chapter of my life in an environment that positively shapes my personal and professional life and do you proud.
+
+\end{acknowledgements}
+
+%----------------------------------------------------------------------------------------
+%	LIST OF CONTENTS/FIGURES/TABLES PAGES
+%----------------------------------------------------------------------------------------
+
+\tableofcontents % Prints the main table of contents
+
+\listoffigures % Prints the list of figures
+
+\listoftables % Prints the list of tables
+
+\listofalgorithms % Prints the list of algorithms
+
+%----------------------------------------------------------------------------------------
+%	ABBREVIATIONS
+%----------------------------------------------------------------------------------------
+
+% Uncomment for abbreviations page
+% \begin{abbreviations}{ll} % Include a list of abbreviations (a table of two columns)
+%
+% \textbf{LAH} & \textbf{L}ist \textbf{A}bbreviations \textbf{H}ere\\
+% \textbf{WSF} & \textbf{W}hat (it) \textbf{S}tands \textbf{F}or\\
+%
+% \end{abbreviations}
+
+%----------------------------------------------------------------------------------------
+%	PHYSICAL CONSTANTS/OTHER DEFINITIONS
+%----------------------------------------------------------------------------------------
+
+% Uncomment for physical constants etc
+% \begin{constants}{lr@{${}={}$}l} % The list of physical constants is a three column table
+%
+% % The \SI{}{} command is provided by the siunitx package, see its documentation for instructions on how to use it
+%
+% 	Speed of Light & $c_{0}$ & \SI{2.99792458e8}{\meter\per\second} (exact)\\
+% %Constant Name & $Symbol$ & $Constant Value$ with units\\
+%
+% \end{constants}
+
+%----------------------------------------------------------------------------------------
+%	SYMBOLS
+%----------------------------------------------------------------------------------------
+
+% Uncomment for symbols
+% \begin{symbols}{lll} % Include a list of Symbols (a three column table)
+%
+% $a$ & distance & \si{\meter} \\
+% $P$ & power & \si{\watt} (\si{\joule\per\second}) \\
+% %Symbol & Name & Unit \\
+%
+% \addlinespace % Gap to separate the Roman symbols from the Greek
+%
+% $\omega$ & angular frequency & \si{\radian} \\
+%
+% \end{symbols}
+
+%----------------------------------------------------------------------------------------
+%	DEDICATION
+%----------------------------------------------------------------------------------------
+
+% \dedicatory{For/Dedicated to/To my\ldots}
+
+%----------------------------------------------------------------------------------------
+%	THESIS CONTENT - CHAPTERS
+%----------------------------------------------------------------------------------------
+
+\mainmatter % Begin numeric (1,2,3...) page numbering
+
+\pagestyle{thesis} % Return the page headers back to the "thesis" style
+
+% Include the chapters of the thesis as separate files from the Chapters folder
+% Uncomment the lines as you write the chapters
+
+\include{Chapters/Chapter1}
+\include{Chapters/Chapter2}
+\include{Chapters/Chapter3}
+\include{Chapters/Chapter4}
+\include{Chapters/Chapter5}
+\include{Chapters/Chapter6}
+\include{Chapters/Chapter7}
+\include{Chapters/Chapter8}
+
+%----------------------------------------------------------------------------------------
+%	THESIS CONTENT - APPENDICES
+%----------------------------------------------------------------------------------------
+
+\appendix % Cue to tell LaTeX that the following "chapters" are Appendices
+
+% Include the appendices of the thesis as separate files from the Appendices folder
+% Uncomment the lines as you write the Appendices
+
+\include{Appendices/AppendixA}
+\include{Appendices/AppendixB}
+\include{Appendices/AppendixC}
+
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\printbibliography[heading=bibintoc]
+
+%----------------------------------------------------------------------------------------
+
+\end{document}

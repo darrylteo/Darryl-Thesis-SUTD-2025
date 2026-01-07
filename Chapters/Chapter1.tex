@@ -1,0 +1,171 @@
+\chapter{Introduction}
+\label{chap1}
+As our world becomes increasingly globalized, international travel, trade, and other business activities have continued to fuel growth in the extensive industry that is aviation. For a sense of scale, the aviation sectors' contribution as a percent of GDP, including tourism, ranges from 3.2$\%$ of Canada's GDP, to 11.8$\%$ of Singapore's GDP, and for a more extreme example, 58.8$\%$ of Maldive's GDP \parencite{IATA2020}. 
+
+Despite the meltdown in aviation services during the COVID-19 pandemic, the recovery has been strong, with flight revenues at the end of 2023 exceeding pre-pandemic levels by seven percent, as shown in Figure \ref{fig:iatagrowth}. This was led by exceptionally strong growth in passenger revenue, especially in the Asia-Pacific region, which accounted for more than half of the global increase.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/iata graph growth bw.pdf}
+    \caption{IATA Chart of the Week: Airline Revenue to Surpass Pre-Pandemic Levels in 2023 \parencite{IATA2023}.}
+    \label{fig:iatagrowth}
+\end{figure}
+
+With air travel demand projected to continue growing at a Compounded Annual Growth Rate (CAGR) of 4.3\% from 2015 to 2035 \parencite{ICAO2019}, the question whether capacity can keep up with demand becomes an increasingly pressing concern. A EUROCONTROL study \parencite{Eurocontrol2018} forecasts a 63\% rise in average delays and a 167\% increase in the number of congested airports by 2040, underscoring the urgent need for measures to address the growing demand. Airspace congestion leads to three major issues: delays, safety risks, and negative environmental impacts. These problems, in turn, lead to increased costs for all stakeholders including passengers, airlines, and airports. A study done by the Federal Aviation Administration (FAA) estimated delays to cost a total of 33.0 billion USD in 2019, with passengers bearing the brunt of the cost due to time lost from schedule buffers, delayed flights, flight cancellations, and missed connections \parencite{FAA2019}. With regard to safety risks stemming from a reduction of separation requirements, multiple studies including \parencite{Blom2015} and \parencite{Ye2014} have brought attention to the risk-capacity trade off in airspace management. Fortunately, the results of the studies show that, for various airspace operations, the risk of a loss of separation is very low even with an increase in the current airspace traffic. Such results reflect the rarity of midair collisions due to a loss of separation, with zero such accidents recorded in 2023 \parencite{ICAO2023a}, and less than ten in the past two decades.
+
+In general, it is surmised that there are two primary ways to increase capacity. The first approach involves increasing airspace capacity by expanding physical infrastructure, such as constructing new airports or runways, and by increasing the number of available airways. A notable example of the impact of opening airways can be traced back to the 1990s, where during the Cold War, no flights were allowed over the Soviet airspace, where even accidental entries into the airspace had been shot down \parencite{AviationSafetyNetwork2024}. Due to this, aircraft had to take alternative routes such as shown in Figure \ref{fig:coldwar}, stopping at Anchorage before continuing on their journey. After the Cold War, the airways were open once again, allowing flights to take a shorter route, as shown in Figure \ref{fig:coldwarafter}, increasing airspace capacity significantly. While physically increasing capacity is effective, the political complexities of opening new airways, the significant investments required in opening new airports, and longer implementation time horizons, are factors that have contributed to the increasing emphasis on research in airspace operations. Through better utilization of resources and optimization of airspace operations, airspace capacity has undergone recent improvements, with lower costs, and more immediate impacts. Some examples include planning for more optimal runway schedules, slot allocations and ground delay programs, to name a few. We note that both these methods to increase capacity are not mutually exclusive, but rather, are being developed simultaneously and have a symbiotic relationship. For example, research in aircraft routing involves more efficient utilization of the current airspace, and at the same time, may provide a quantification of the extent to which airspace users benefit from the opening of new airways. The outcome of some aviation research projects, has culminated in the implementation of various airspace initiatives including Functional Airspace Blocks (FABs) in Europe and Next Generation Air Transportation System (NextGen) in the USA. We reserve a review of the main research areas in Section \ref{sec:research}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 0.6\textwidth]{Figures/globe_01.pdf}
+    \caption{Flight Routes Under a Restricted Airspace, During the Cold War \parencite{SCMP2018}}
+    \label{fig:coldwar}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = 0.6\textwidth]{Figures/globe_02.pdf}
+    \caption{Flight Routes in an Open Airspace, After the Cold War \parencite{SCMP2018}}
+    \label{fig:coldwarafter}
+\end{figure}
+
+%--------------------------------------------------------
+\section{Air Traffic Management and Collaboration Initiatives}
+\label{sec:ATMcollaborate}
+This section describes systems that work together to improve Air Traffic Management (ATM) operations, with a focus on systems that are built upon the basis of collaboration between stakeholders. Other closely related initiatives that are not elaborated on here are NextGen, Single European Sky ATM Research (SESAR). 
+
+% \textbf{*NOTE*} maybe include TBO and frame it as one future direction of ATFM to link to chapt 2?
+
+%--------------------------------------------------------
+\subsection{Global Air Traffic Management Operational Concept}
+\label{sub:GATMOC}
+The Global Air Traffic Management Operational Concept (GATMOC) was introduced by the International Civil Aviation Organization (ICAO) in 2005 with the aim of achieving an interoperable global air traffic management system, for all users during all phases of flight, that meets the agreed safety levels, provides for optimum economic operations, is environmentally sustainable and meets national security requirements \parencite{ICAO2005}. The GATMOC listed seven guiding principles, as given in Figure \ref{fig:GATMOC}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Pages from GATMOC.pdf}
+    \caption{Guiding Principles for GATMOC \parencite{ICAO2005}}
+    \label{fig:GATMOC}
+\end{figure}
+
+%--------------------------------------------------------
+\subsection{Collaborative Decision-Making}
+\label{sub:CDM}
+In 2023, a study done by IATA \parencite{IATA2023a} indicated that 60.1$\%$ of flights are international. The global nature of air traffic requires international collaboration in planning, implementation and operation. Due to a lack of accurate and precise flight information, Air Traffic Flow Management (ATFM), especially for international flights, experience a lack of predictability and stability. In Europe, such airspaces have been shown to suffer from a disproportionately large number of incorrect and missing flight plans, necessitating a capacity buffer to account for unforeseen changes in airspace demand and capacity \parencite{ICAO2018}. As such, programs and initiatives that promote collaborative decision-making are projected to increase the effectiveness and efficiency of the global airspace to meet the increasing demand for air travel.
+
+As of present, information sharing is supported by systems including the System Wide Information Management (SWIM) and Airport Operations Centre System. The primary sources of shared information, ideally as updated and precise as possible, are flight schedules, flight cancellations, operational constraints and route availability. Figure \ref{fig:CDMdata} illustrates this, along with the inclusion of other vital information that support ATFM operations.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Figures/CDM data exchange.pdf}
+    \caption{Data Requirements of an ATFM Service \parencite{ICAO2018}}
+    \label{fig:CDMdata}
+\end{figure}
+
+As the world becomes increasingly globalized, leading to increased participation in collaborative operations, and technology supporting such collaboration continue to improve, Collaborative Decision-Making (CDM) is anticipated to bring about benefits as follows:
+\begin{itemize}
+    \item Increased level of predictability for ATFM, ATC units and aerodromes while operating close to maximum capacity;
+    \item Increased flexibility of operations;
+    \item Increased time horizon of ATFM leading to better decisions of the appropriate ATFM procedure to execute; and
+    \item Improved predictability and punctuality of flights; leading to reduced fuel use, delays, and flight cancellations.
+\end{itemize}
+
+Some of these benefits have already been realized and evaluated. One example is at the John F. Kennedy International Airport, where CDM allowed flexibility in having planes wait at their gates instead of the tarmac due to increased predictability of runway schedules. An evaluation of the airport, in 2017, has shown CDM benefits translating to approximately USD 123 million of savings, a reduction of 44,000 metric tons of CO2 emissions, 152,000 person days of passenger time saved, and a reduction of average taxi-in times by over three minutes as compared to 2009 \parencite{ICAO2018}. CDM benefits were also evaluated at Singapore Changi Airport in 2017, with a reduction of taxi-out time by an average of 90 seconds despite increases in traffic volume \parencite{CAAS2017}. 
+
+While the benefits of CDM have been demonstrated across multiple airports, due to the significant investment required and inertia of utilizing current methods, not all stakeholders are enthusiastic in implementation of CDM methods. More work has to be done to assure stakeholders and the wider community of the potential benefits of CDM, and forms a primary motivator for our research direction.
+
+%--------------------------------------------------------
+\subsection{System Wide Information Management}
+\label{sub:SWIM}
+System Wide Information Management (SWIM) is the underlying system infrastructure, rolled out as part of the GATMOC, that supports both the CDM and Flight and Flow Information for a Collaborative Environment (FF-ICE) initiatives. Current ATM systems lack the interoperability envisioned by the GATMOC, and SWIM seeks to bring about the change from point-to-point data exchanges, to system-wide interoperability.
+
+There is a need to shift away from the point-to-point approach, as it comes with several drawbacks. These drawbacks include challenges in onboarding new users or new data formats due to multiple interfaces, asymmetric costs in accessing information on a timely basis, and data duplication or inconsistencies arising from the differences in handling ATM data by different parties \parencite{ICAO2015}. The illustration in Figure \ref{fig:swim} depicts the way in which SWIM facilitates the exchange of information between various stakeholders throughout the aviation ecosystem through a single interface, achieving the goal of a globally interoperable environment for its participants. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/swim.pdf}
+    \caption{Data Exchange Under SWIM \parencite{FAA2016}}
+    \label{fig:swim}
+\end{figure}
+
+The SWIM initiative provides many benefits, including improved decision-making during the flight planning (strategic) and operational (tactical) phases, cost-effective communications with global standards for the exchange of information and improved system performance \parencite{ICAO2015}. Furthermore, ICAO has prepared for mixed-mode operations, where some regions may continue to use legacy systems, and others the upgraded systems. To that end, ICAO has proposed specialized gateways for messaging and a staged transition to maintain an acceptable degree of system interoperability \parencite{ICAO2015}.
+
+%--------------------------------------------------------
+\subsection{Trajectory-Based Operations}
+\label{sub:TBO}
+Trajectory-based operations (TBO) calls for strategical planning and managing flights throughout the its trajectory, information exchanged between air and ground systems, and the capability of aircraft to accurately trace a trajectory in 4D, subject to rescheduling or rerouting requests. A 4D trajectory defines the flight path of an aircraft from departure to arrival, in four dimensions --- latitude, longitude, altitude, and time. Major players including Europe, the United States, and countries within Asia \parencite{Kok2023, SESAR2024} are continuing to develop their capabilities to operate the TBO concept. An example of how the TBO concept will benefit airspace users is given in Figure \ref{fig:TBO}.
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/tbo.jpg}
+    \caption{TBO Achieves Greater Airspace Efficiency \parencite{Kok2023}}
+    \label{fig:TBO}
+\end{figure}
+
+%--------------------------------------------------------
+\subsection{Flight and Flow Information for a Collaborative Environment}
+\label{sub:FFICE}
+In support of the GATMOC, the FF-ICE describes the information environment to support an integrated, harmonized, and globally interoperable ATM system, and supports both the aforementioned SWIM and CDM initiatives. The FF-ICE is aimed at addressing several of the current limitations faced by ATM systems, which are elaborated in detail in \parencite{ICAO2012}. Most importantly, the key objective may be summarized as providing secure, consistent, and timely flight information to all stakeholders through an effective information sharing network.
+
+As the aviation community migrates towards a TBO airspace model, FF-ICE will lay down the necessary foundations to achieve efficient TBO operations. The filing of flight plans are soon expected to include a 4D trajectory, which encompasses both the route and the times at each point along the route. Furthermore, when the ATM system receives updated information such as meteorological conditions, winds, specific aircraft availability, and resource demand, new constraints are imposed on the aircraft, necessitating updates for the accuracy of flight plans. Under the FF-ICE, these flight plans may be refined even after departure and shared to all relevant stakeholders through the SWIM system. The revised flight plans provide more precise forecasts of departure and arrival times, along with any necessary route modifications in response to airspace capacity constraints arising from adverse weather conditions or military operations. Timely access to such information would allow Air Navigation Service Providers (ANSPs) and airspace users to take immediate action, ensuring the limited system resources are efficiently distributed. Figure \ref{fig:ffice} illustrates the high level interactions between FF-ICE stakeholders.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/ffice.pdf}
+    \caption{Information Provision and Consumption by FF-ICE Participants \parencite{ICAO2012}}
+    \label{fig:ffice}
+\end{figure}
+
+FF-ICE envisions various levels of information sharing, termed as FF-ICE releases. As ICAO and the Air Traffic Management Requirements And Performance Panel (ATMRPP) have not officially released the ICAO provisions for FF-ICE Release 1 (R1) and FF-ICE Release 2 (R2) at the time of writing, we define these based on our discussions with the Civil Aviation Authority of Singapore (CAAS) and several FF-ICE evaluation reports \parencite{Liang2021}. We denote FF-ICE Release 0 (R0) as the minimum level of information sharing, where pre-departure flight plans are shared with the relevant ANSPs, containing only route and scheduled departure time information. The FF-ICE R1 builds on this, where filing of pre-departure flight plans are optimized using Preliminary Flight Plans and trial requests, both of which will be filed in the SWIM system. The actual departure time of flights will also be shared among participants in FF-ICE R1, by the airport of origin. The FF-ICE R2 is still written as a draft and not vetted by ICAO, but the general intent will be sharing of post-departure information with relevant ANSPs, during the execution phase of flight. This is proposed to include systemic data sharing for all aircraft between air and ground systems and full harmonization of trajectory information across all stakeholders.
+
+Owing to the level of detail and timeliness of information received, FF-ICE is expected to bring about the following benefits. The FF-ICE will provide airspace users with increased flexibility to negotiate for trajectories, increased speed of reaction to changes in the airspace, increased predictability and progressive migration towards TBO, another key driver of the GATMOC \parencite{Liang2021}. Central to this dissertation, we also aim to show that for regions operating at FF-ICE R1, the actual departure time may be utilized to improve the efficiency of collaborative ground delay programs, leading to a reduction of airborne delays.
+
+
+%--------------------------------------------------------
+\section{Motivation}
+\label{sec:motivation}
+Many regions of the world operate in a decentralized fashion. However, a common hypothesis is that even in a decentralized system, outcomes can be improved through information sharing. A possible method to evaluate the hypothesis, is through simulating ATFM operations, modeling key decision makers as independent optimizers, but responding to shared information. We seek to demonstrate the value of information sharing and collaboration by building a realistic simulation tool that models the South-east Asia region, specifically in the Association of South East Asia Nations (ASEAN) region, which consists of Brunei Darussalam, Myanmar, Cambodia, Indonesia, Laos, Malaysia, Philippines, Singapore, Thailand, and Vietnam. We also include Flight Information Regions (FIRs) for Sanya and Hong Kong, given their proximity to ASEAN. We collectively refer to this region as \textit{ASEAN Plus}. Critical to this dissertation, an analyst using the tool would be able to modify the extent of information sharing by selecting regions to be placed under either the FF-ICE R0 or FF-ICE R1 information regime. This analysis will be conducted for both full and partial participation in the FF-ICE program, reflecting the expected incremental adoption in which only specific FIRs or airport pairs engage in information sharing and collaborative decision-making. The analysis would generate results detailing the value of information sharing and collaboration, such as reductions in airborne delays or fuel consumption, or trade-offs between flights that do and do not participate in the FF-ICE program. The analyst would also be able to modify the permitted flow capacity at waypoints and airports, as a representative analysis should be conducted under multiple airspace capacity levels, given that an airspace operating at near full capacity would likely display greater benefit from information sharing as compared to a sparsely populated airspace. Additionally, these results may be aggregated or disaggregated at various degrees of granularity, such as at the regional level or individual flight level.
+
+In line with the goals outlined in the GATMOC, implementation of the FF-ICE seeks to bring about a greater level of collaboration between stakeholders across different regions, and realize the vision of an integrated, harmonized, globally interoperable ATM system. This dissertation seeks to deliver research insights, through use of an airspace network simulator, on the value of information sharing and collaboration under FF-ICE R0, and FF-ICE R1 and mixed mode operations. Both complete participation and mixed mode operations, only involving some regions or particular airport pairs operating FF-ICE R1, are used to demonstrate and quantify the benefits of collaborative ground delay programs and the enhanced information sharing capabilities of FF-ICE R1.
+
+%--------------------------------------------------------
+\section{Overview of Modeling Formulations and Objectives}
+\label{sec:overview}
+To ensure clarity for both academic and practitioner audiences, we briefly summarize the key formulations and objectives of each modeling endeavor undertaken in this dissertation.
+\begin{itemize}
+    \item \textbf{Airport Flow Regulator (AFR).} The AFR formulation captures runway capacity envelopes and assigns departure and arrival slots. We use a three-channel system that generically represents any airport runway configuration. The objective function minimizes the makespan while ensuring conflict-free operations.
+
+    \item \textbf{Waypoint Flow Regulator (WFR).} The WFR formulation balances airspace demand and capacity by adjusting flight trajectories, subjected to aircraft separation requirements. The objective function minimizes the deviation from the scheduled time while ensuring conflict-free trajectories.
+
+    \item \textbf{Discrete Event Simulation (DES).} The DES generates conflict-free flight trajectories under either a First-Come-First-Served (FCFS) or First-Scheduled-First-Served (FSFS) scheduling rule, depending on the collaboration status of the aircraft. The primary collaboration mechanic is the use of Ground Delay Programs (GDPs). It is integrated into a rolling horizon framework, and models regions as independent agents that make decisions under various information regimes. The objective is not an optimization, but instead, the DES runs a system-level simulation that allows evaluation of the impact of various collaboration regimes. Performance outcomes are evaluated using metrics such as airborne time, ground delay, and fuel consumption.
+\end{itemize}
+
+%--------------------------------------------------------
+\section{Contributions and Key Findings}
+In Section \ref{sub:ATFMcomplete}, we review multiple research papers that are directed towards optimizing complete flight trajectories, with the implicit assumption that there exists a central manager who receives full information of all flights and any changes made, along with a central controller who is able to assign a change in decision variables across all flights. While these research papers exhibit the potential value of a centralized aviation network, there is a gap in the literature in the value of information sharing and collaboration in a decentralized aviation network. Furthermore, while related research articles on the FF-ICE program such as \parencite{Liang2019, Liang2021, Liang2021a, Lu2022, Egami2019, Ngo2019} provide the operational and technical details of the FF-ICE implementation, they do not offer a quantitative framework for modeling and evaluation. A related work by Mondoloni \parencite{Mondoloni2013} evaluates the impact of trajectory prediction accuracy on airborne and ground delay with reference to the FF-ICE. Our work which evaluates sharing of departure information that is to be updated in rolling horizon fashion, explores a different avenue from the work by Mondoloni which is based on a general prediction accuracy criteria. As such, the first and primary contribution of this dissertation is a leading work that demonstrates, in a decentralized ASEAN Plus network, the value of information sharing and collaboration for combinations of single and mixed mode of operations under the FF-ICE R0 and FF-ICE R1 information regimes.
+
+Another contribution of this dissertation is the formulation and implementation of mathematical models and algorithmic routines, that allow us to simulate decentralized ATFM systems. These models include gradient descent ascent, simulated annealing, exact methods, and discrete event simulation, of which results demonstrate to have generated conflict-free trajectories across the entire ASEAN Plus region. Also unique to this dissertation, our simulator has the property of separation of concerns, emulating individual decision makers in a decentralized network, reflecting the reality that decisions for flights often involve multiple stakeholders that may not be working in collaboration with one another.
+
+To support the above contributions, we assert that constructing a detailed ASEAN Plus network comprising of all nodes, arcs, flight capacities, and flight schedules, is essential. The simulator developed represents a realistic ASEAN Plus airspace network, and contain capabilities to simulate flights within this region, under various information sharing schemes, and generate reasonable results that guide the development and adoption of FF-ICE R1. Serving as the testbed for this research, the simulator played a central role in the dissertation and was also delivered as part of the grant supporting this project. Furthermore, the data sources described in Chapter \ref{chap3}, Section \ref{sec:datasources}, enhance the realism and credibility of the simulation, thereby strengthening the overall contribution of this work.
+
+We also summarize the key quantitative findings corresponding to the modeling frameworks described in Section \ref{sec:overview}. 
+
+For the AFR, we benchmarked the performance of the Queue Pressure (QP) algorithm against the First-Come-First-Served (FCFS) algorithm. The results demonstrated negligible differences, where the makespan under the QP algorithm differed from FCFS by only $0.03\%$ in the regular capacity case and by $-0.01\%$ in the reduced capacity case. These results indicate that no substantial capacity and flow regulation benefits can be achieved from resequencing aircraft under the QP algorithm, particularly as ATFM models determine separation times independently of aircraft weight class.
+
+For the WFR, we compared the Gradient Descent Ascent (GDA), Simulated Annealing (SA), and Exact Methods (EM) approaches. Under the reduced capacity case, GDA demonstrated the best computational performance, resolving all conflicts within a decision window in under 9 seconds. By comparison, SA, EM with a 10-second time limit per region (EM10), and EM with a 600-second time limit per region (EM600), required 75, 102, and 5413 seconds, respectively. While all conflicts were resolved much more rapidly, the deviation from scheduled times under GDA was 26\% worse than the best solution obtained. The SA algorithm generated solutions that were 10\% better than GDA, 8\% better than EM10, but 13\% worse than EM600.
+
+The results demonstrate that either QP or FCFS may be used for the AFR without significant performance loss. For the WFR, the preferred algorithm depends on the operational priority. We provide some instances where each algorithm would be chosen over the others. 
+\begin{itemize}
+    \item GDA is the preferred choice for rapid generation of feasible solutions.  
+    \item SA is the preferred choice for generating robust solutions with better quality and scalability to larger problem instances.
+    \item EM is the preferred choice for achieving the most optimal schedules during strategic planning, which is done weeks ahead of actual operations.
+\end{itemize}
+
+Taken together, the AFR and WFR algorithms provide an optimization framework for supporting ATFM units in scheduling conflict-free trajectories within a decentralized operating environment such as the ASEAN region.
+
+In the next modeling framework, the DES, the results demonstrated the value of information sharing and collaboration within the ASEAN Plus region. Key findings include a system level reduction of airborne time of 0.75\% and 2.19\% for the base and reduced capacity case respectively. However, since most flights do not experience a collaborative GDP instruction, we narrowed down to consider only flights that experience an airborne saving of more than 5 minutes. Under this condition, the savings increased to 12.3\% and 17.4\% respectively. Another key result is that partial collaboration is already beneficial for participating regions, without requiring complete participation from all regions. For example, with the baseline of all regions within ASEAN collaborating, having only 6 regions collaborating, out of a total of 14, yields 46\% of the total possible savings. The results also revealed a conundrum for when too few flights participate in collaborative GDPs, where fewer than 15 collaborative flights led to greater delays as compared to airborne savings at the network level. Finally, the results showed that with a reduction of airspace capacity of 20\%, we see an increase of airborne savings under collaboration of over 200\%, signifying the importance of collaborative measures as the growth of demand is predicted to outpace the increase in airspace capacity.
+
+%--------------------------------------------------------
+\section{Dissertation Structure}
+The organization for the remainder of this dissertation is as follows. Chapter \ref{chap2} starts introduces Air Traffic Flow Management (ATFM) and the concepts that will be used throughout the dissertation, and also discusses the key areas of ATFM research. The three key themes we explore and discuss as part of the literature review are the \textit{Flow Management Problem for Complete Trajectories}, the \textit{Flow Management Problem within the Terminal Maneuvering Area}, and the \textit{Runway Sequencing Problem}. In Chapter \ref{chap3}, we provide a high level modeling and interpretation of information sharing under FF-ICE R0, FF-ICE R1, and mixed mode operations. Chapter \ref{chap3} also gives an overview of two simulation models, the first is the Airport Flow Regulator (AFR) and the Waypoint Flow Regulator (WFR). These algorithms work together to simulate control decisions at the airport and waypoints separately, and combine their results at the end of each simulation step. The second is the Discrete Event Simulation (DES), which provides an integrated control algorithm for flow regulation at both airports and waypoints. Application of the rolling horizon concept, as well as the data sources, are also included in this chapter. In Chapter \ref{chap4}, we describe in detail the AFR, discussing our model for airport capacity, our mathematical model for the AFR, and a comparison of results between a novel queue pressure algorithm and a classic First-Come-First-Served (FCFS) algorithm applied to the AFR. Following, Chapter \ref{chap5} formalizes our mathematical model for the WFR, and introduces two machine learning models, namely Gradient Ascent Descent (GDA) and Simulated Annealing (SA), that we have applied to the WFR. Details of the application of GDA and SA to the WFR follow, and a comparison of results between the two machine learning models against exact methods concludes the chapter. Chapter \ref{chap6} introduces a separate algorithm, a Discrete Event Simulation (DES) which provides a rule-based alternative to the AFR and WFR, providing an end-to-end decision making algorithm based on simple priority rules. In Chapter \ref{chap7}, we briefly describe the integration between the inputs and outputs of the AFR and WFR and how the simulation tool works, together with a comparison of the optimization-based and rule-based approaches. Conclusions and recommendations based on the results generated through the lens of the value gained through information sharing are also included in this chapter. In Chapter \ref{chap8}, we conclude the dissertation by evaluating the insights and conclusions derived from our experiments and results. We also summarize the key contributions of this work and outline potential directions for future research.

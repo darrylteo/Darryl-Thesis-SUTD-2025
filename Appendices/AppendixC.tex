@@ -1,0 +1,215 @@
+% Appendix Template
+
+\chapter{System and User Interface Design for the FF-ICE Simulator}
+\label{AppendixC}
+The Integrated Computer Aided Manufacturing Definition for Function Modeling (IDEF) techniques are a systematic method of describing and assessing the functions of a system. Technique 0 (IDEF0) provides a representation of the functionality of a system, the inputs, resources, and constraints associated with each function and the outputs produced.
+
+This appendix chapter provides a textual description to further explain each IDEF0 diagram showing the high level user functionality of the software tool, “FF-ICE Regional Traffic Flow Simulator”, along with screenshots from the FF-ICE simulator as an accompanying illustration of the UI design and tool functionality.
+
+The purpose of the software tool, “FF-ICE Regional Traffic Flow Simulator”, is to measure the impact of employing differing levels and extent of FF-ICE concepts in the South-east Asia region, specifically in the Association of South East Asia Nations (Brunei Darussalam, Myanmar, Cambodia, Indonesia, Laos, Malaysia, Philippines, Singapore, Thailand, and Vietnam) together with Flight Information Regions for Sanya and Hong Kong, collectively referred to in our documentation as “ASEAN Plus”.
+
+The focus of the impact measurement is on the comparison between operating under Release Level R0 and Release Level R1 of the FF-ICE concept of operations. It is assumed that all regions in ASEAN Plus are operating now at level R0. This is the minimal level of information sharing. Pre-flight flight plans are shared with all participating airports and flight information regions and scheduled departure times are known for all flights. For a flight information region to be at Release Level R1, the key additional information which will be shared is the actual departure time of flights originating in that region. The benefit of this information is that if a flight has a delayed departure time, the destination airport can update its place in the arrival queue and potentially make better use of airport capacity. The second feature of Release Level R1 is that it can facilitate collaborative ground delay programs through the sharing of Calculated Take-off Time (CTOT) for each flight from a destination airport to collaborating departure airports. Thus, if an airport is experiencing high delays, with approaching aircraft likely to spend time in holding areas, that information can be shared with participating airports through CTOT’s. The departure airports can then delay flights accordingly and thereby substitute ground holding time for airborne holding time.
+
+The software tool is constructed to allow the user to identify which flight information regions are operating at each Release Level (R0 or R1) and to simulate air traffic under the different information sharing rules. The analyst can then measure the benefit in reduced airborne delays of employing more advanced information and collaborative tools. It will be interesting to measure these benefits at the region level, at the individual flight information level, and at the level of important city pairs. 
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsubsection{NETSIM Context}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/NETSIMcontext.pdf}
+    \caption{Context for the FF-ICE Network Simulator}
+    \label{fig:NETSIMContext}
+\end{figure}
+
+The context of the FF-ICE Regional Network Simulator is the use case in which an analyst seeks to “Compare Simulated Performance of FF-ICE R1 Implementations”, shown in the Figure \ref{fig:NETSIMContext} as function numbered NETSIM-0. The two user inputs for such a comparison are the simulation index for a Base Case and a simulation index for a Special Case. A simulation index uniquely identifies a detailed collection of choices to describe the actual simulation to be run. We assume the focus will be on comparing information regimes. Consequently, most choices, except for Information Regime, will be the same for both Base Case and Special Case. These choices are listed as:
+
+\begin{itemize}
+    \item \textit{Network Case}: If there are alternative network designs available, the network case ID identifies which network design to use in the simulation. This will likely be the same for both Base Case and Special Case.
+    \item \textit{Flight Schedule Selection}: The user can specify the starting date and time to select flights from the database of historical flights. Flights will be loaded into the simulator in batches starting from this date and time. As the simulation progresses, it loads in consecutive batches so that all simulated decision makers (airports and en route controllers) have an adequate amount of look-ahead information. This will likely be the same for both Base Case and Special Case. 
+    \item \textit{Capacity Scenario}: The tool comes pre-loaded with different capacity scenarios for airports and waypoints. The user indicates which scenario to use through the Scenario ID. This will likely be the same for both Base Case and Special Case.
+    \item \textit{Capacity Sub-Scenario}: The tool editor allows the user to define sub-scenarios in which he or she specifies specific events such as waypoint closure or airport restrictions which further restrict capacity beyond the chosen Capacity Scenario. The user must then specify which sub-scenario to use in the simulation. This sub-scenario will likely be the same for both Base Case and Special Case.
+    % change here
+    \item \textit{Information Regime}: The tool editor allows the user to define information regimes in which each Flight Information Region (FIR) is set separately to operate at either Release Level R0 or Release Level R1. For example, one information regime may be to set all regions at R0, another information regime may be to set all regions at R1, and a third regime may be to set just a subset of the regions at R1. Additionally, the analyst may further refine the information regime by only setting particular airport pairs at R1 within the set of regions at R1. It is very likely that the analyst will then select different information regimes for the Base Case and Special Case. Typically, the Base Case would be an information regime in which all regions are at R0.
+    \item \textit{Algorithm Choice and Parameters}: The developer uses this tool to conduct experiments on different optimization algorithms or collaborative ground delay programs. Certain parameters may also need to be tuned for optimum performance of the algorithms. The different possibilities are captured by means of an Algorithm Choice ID. The typical user will use the choice recommended by the developer.
+\end{itemize}
+
+The tool comes with pre-built databases of air traffic simulation inputs including the following:
+\begin{itemize}
+    \item \textit{Regional Air Traffic Network}: The air traffic network consists of nodes and arcs representing airports, waypoints, routes, Standard Instrument Departure Routes (SIDs) and Standard Arrival Routes (STARS). This database has been developed by researchers at ASI through reference to the Aeronautical Information Publication (AIP) documents for each FIR.
+    \item \textit{Flights Database (OAG)}: The flights database is derived from access under license to historical flight schedules maintained by OAG. It covers a multi-day block of time in late 2023. It includes flights originating and/or terminating in the ASEAN Plus region as well as some overflights. Multi-stop flights have been transformed into sequences of single-leg flights to simplify the simulation. A small number of historical flights were deleted from the database because they were found to be incompatible with the Regional Air Traffic Network (for example, if they referenced a newly opened airport).
+    \item \textit{Capacity Envelopes and Waypoint Capacities}: This database includes different scenarios of network capacity constraints. An airport capacity constraint is captured as a so-called Capacity Envelope (maximum arrivals per hour, maximum departures per hour, and maximum total operations per hour). A Waypoint Capacity is simply the maximum number of aircraft transits permitted per hour at that waypoint. Each scenario provides a Capacity Envelope for every airport and a Waypoint Capacity for every waypoint. Some scenarios are designed to be more restrictive than others in order to test the conditions under which FF-ICE information sharing becomes valuable (it is not likely to be of value when capacity is high, that is, when demand is much less than supply). 
+    \item \textit{FF-ICE Release Levels}: Researchers at ASI have created a number of pre-built information regimes. For each regime, the Release Level (R0 or R1) is specified for each Flight Information Region. The user may use any of these regimes in a simulation by specifying its Information Regime ID. The user may also define new regimes for investigation by simulation.
+    \item \textit{Flight Paths by Origin Destination Pair}: For every origin-destination pair found in the Flights Database, researchers at ASI have constructed flight plans (waypoint sequences) through the Regional Air Traffic Network from origin to destination. We used the online rFinder tool to construct these flight plans, resorting to SkyVector in problematic cases. In cases where the origin or destination lies outside the ASEAN Plus region, we connected the external location directly to the first or last waypoint in the flight plan which belongs in the Regional Air Traffic Network.
+\end{itemize}
+
+With the exception of FF-ICE Release Levels, the software tool does not provide any facility to modify these pre-built databases. These data are difficult to acquire, assemble and validate. Alternatively, the database formats are easily accessible through tools such as dBeaver and the advanced user can modify the data directly.
+
+The output of the comparison is a paired matching of completed simulated flights between the Base Case and the Special Case. Any two simulations can be compared but the Use Case assumes the analyst is using a Base Case in which the information regime has all regions at Release Level R0. By focusing on completed flights that are matched between the two simulations, we get statistics that can be broken down to any level of detail desired: system-wide, regional, or city-pairs. The comparison ignores flights that are completed under one simulation but not completed under another. It is important therefore to ensure that simulations are run long enough so that these mismatched flights do not affect the long-term averages by much. The analyst can extend simulation runs until the averages stabilize.
+
+For each pair of completed flights we know the scheduled departure time, the preferred flight time (based on equipment type and distance), the simulated departure time, and the simulated flight time. The simulated flight time may include aircraft speed-up, slow-down, and/or airborne holding. For each simulation run and for each aggregation level (system, flight information region, or city-pair), the software reports the following key statistical measures:
+
+\begin{itemize}
+    \item \textit{Average flight time}: This is the total flight time across all flights in the aggregation group divided by the number of flights.
+    \item \textit{Average arrival delays}: this is the difference between the simulated arrival time and the scheduled arrival time (taken to be the scheduled departure time plus the preferred flight time) averaged over all flights in the aggregation group.
+    \item \textit{Average ground delay time}: This is the difference between the simulated departure time and the scheduled departure time averaged over all flights in the aggregation group.
+    \item \textit{Average fuel consumed}: This is the difference between the simulated fuel consumed over all flights in the aggregation group.
+\end{itemize}
+
+If Release Level R1 provides a benefit, we would expect to see lower average flight times and fuel consumed under the Base Case (R0) and a Special Case (some FIRs using R1) but greater ground delays under the Special Case, and possibly larger arrival delays.
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsubsection{NETSIM-0}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/NETSIM0.pdf}
+    \caption{NETSIM-0: Compare Simulated Performance of the FF-ICE R1 Implementations.}
+    \label{fig:NETSIM0}
+\end{figure}
+
+The diagram NETSIM-0 expands the function “\textit{Compare Simulated Performance of Regional FF-ICE R1 Implementations}” to identify two distinct functions which make up the use case. The function “Run FF-ICE Simulation” labeled as NETSIM-1 captures the essential role of building and running simulations. We think of this as a “Designer” role because it requires specifying the combination of Network Case, Flight Schedule Selection, Capacity Scenario, Capacity Sub-Scenario, Information Regime, and Algorithm Choice and Parameters which make up the unique simulation index as explained in the previous section. The inputs to running the simulation are the Regional Air Traffic Network, Flights Database (OAG), Capacity Envelopes Scenarios and Sub-Scenarios, Transit Capacities Scenarios and Sub-Scenarios, FF-ICE Release Levels, and Flight Paths are as described in the previous section. The Designer also runs the simulation and chooses how long to run the simulation. After each simulation run, the state of the simulation is saved. The Designer can choose to extend the simulation run for as many time steps as desired. The simulator software will read in the previously saved state of simulation and continue from that point. The Designer can also delete simulation indices and all recorded results for those indices. This can be useful if a mistake was made in setting up, say, the capacity sub-scenarios.
+
+The second function of the use case is “Compare Simulation Results” labeled as NETSIM-2. We think of this as an “Analyst” role because it enables studying the statistical comparisons of paired simulation runs. The outputs of this function are as described in the previous section. The only new input captured in this diagram is:
+\begin{itemize}
+    \item \textit{Completed flights by simulation index}: Each simulation archives completed flights into the database by simulation index, and is retrieved when comparing the results of two simulations.
+\end{itemize}
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsubsection{NETSIM-1}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/NETSIM1.pdf}
+    \caption{NETSIM 1: Run FF-ICE Simulation}
+    \label{fig:NETSIM1}
+\end{figure}
+
+The diagram NETSIM-1 expands the function “Run FF-ICE Simulation” to capture three major functions of the software simulator:
+\begin{itemize}
+    \item \textbf{NETSIM-11: Initialize Simulation Run}: This function deletes any prior record of the simulation run for the given simulation index, resets the simulation clock to the start of the flight schedule, and loads all data relevant to the simulation as determined by the simulation index and the network, capacities, and information regime choices which the index represents.
+    \item \textbf{NETSIM-12: Run Single Step of Simulation}: This function advances all simulated flights along their flight paths making such decisions as sequencing and releasing aircraft for departure or holding them for ground delay, adjusting the speed of aircraft en route and perhaps putting them into holding patterns, sequencing aircraft for arrival, and marking them as completed when landed. The step size of this advance is currently set at 5 minutes. This function is described in more detail in diagram NETSIM-12 below, in Section \ref{sub:NETSIM12}.
+    \item \textbf{NETSIM-13: Save Simulation Data}: The simulation data captures all information about the current state of the simulation (what flights are active, what stage of preparation or flight they are in, and what their current locations and speeds are). It is saved after each simulation step so that the simulation can be interrupted, and then reloaded and continued at a later time. 
+\end{itemize}
+
+
+The major outputs of NETSIM-12 are twofold:
+\begin{itemize}
+    \item \textit{Simulation Data Updated with Active Flights and Trajectories}: As described above, the simulation data captures all information about the current state of the simulation. These data are saved so that the simulation can be interrupted and continued later.
+    \item \textit{Simulated Completed Flights by Simulation Index}: When a simulated flight lands, it is marked as completed and removed from the simulation data. It is archived into a separate database table for use in subsequent analysis, as in NETSIM-2.
+\end{itemize}
+A minor output of NETSIM-2 is the Number of Steps Left to Run which counts down from Number of Steps to Run to allow the user to let the simulation run many steps at once. The software UI displays this countdown number so that the user can monitor progress of the simulation.
+
+
+% ------------------------------------------------------------------------------------------------------------------------------------------
+\subsubsection{NETSIM-12}
+\label{sub:NETSIM12}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/NETSIM12.pdf}
+    \caption{NETSIM-12 Run Single Step of Simulation}
+    \label{fig:NETSIM12}
+\end{figure}
+
+Diagram NETSIM-12 expands the function “Run Single Step of Simulation” to reveal the basic sequence of functions used to implement the simulation. The inputs and outputs of these functions are the same as documented in the earlier diagrams. What this diagram adds is the identification of specialized algorithms used by the different functions. These algorithms are briefly described as follows:
+\begin{itemize}
+    \item \textbf{Aircraft Speed Profile Algorithm}: Based on the equipment table, with rate of ascent, rate of descent and cruising altitude, this algorithm computes a speed and altitude profile of an aircraft for any given trip distance. If the trip distance is short, the aircraft may not reach its cruising altitude before beginning its descent. The speed-distance profile is adjusted up and down in percentage fashion to determine, for each leg of the flight plan, the minimum, maximum and preferred time to traverse the leg. We refer the reader to Appendix \ref{AppendixB} for the detailed calculation procedures.
+    \item \textbf{Airport Flow Regulator (AFR)}: This algorithm sequences aircraft into/out of an airport based on arrival and departure queues of flights for that airport and its current Capacity Envelope (maximum arrivals per hour, maximum departures per hour, and maximum operations per hour). It does this by converting the Capacity Envelope into a three-channel representation of the airport (an arrivals-only channel, a departures-only channel, and a common channel). Each channel can be treated like a waypoint with a fixed minimum separation time. The algorithm schedules each flight into the earliest available channel time for that flight. It chooses the next flight to schedule from the queue (Arrival or Departure) with the highest so-called queue pressure. Queue pressure is simply the sum of incremental delays flights from the queue will experience if the next flight is chosen from that queue. If the FCFS algorithm is chosen, the next flight to schedule will be the earliest available flight that is permitted to use the selected channel.
+    \item \textbf{Waypoint Flow Regulator (WFR)}: This algorithm modifies the Target Time Over (TTO) of each future leg of the trajectory of each aircraft in a FIR to satisfy separation constraints at the FIR waypoints. The TTO of past legs are fixed and irrelevant. The TTO of the current leg is also fixed under the assumption that it is too late to adjust the speed of an aircraft on its current leg. The algorithm uses speed changes and vectoring/holding to adjust these future TTOs. Separation times are derived from the Waypoint Capacity Scenario and Sub-Scenario. The objective is to minimize the deviation of exit TTOs (the TTO of the last leg of each flight in the FIR) from the backTTO. The user may select between the Gradient Descent Ascent (GDA) or Simulated Annealing (SA) algorithm. The optimization problem is solved using the selected algorithm. Neither optimality nor feasibility are guaranteed by this algorithm, but the results are promising, often generating conflict-free trajectories.
+    \item \textbf{Forward and Backward TTO Calculation by Information Regime}: This algorithm computes a TTO for the endpoint of each leg in the trajectory for each active flight. If the origin FIR for the flight is at Release Level R0, then the calculation uses the scheduled departure time from the origin airport plus the cumulative sum of preferred leg times (time to traverse the leg at its preferred speed). If the origin FIR for the flight is at Release Level R1 and the leg is in a FIR at Release Level R1 (or if the flight is in the FIR), then the TTO is based on the actual (simulated) departure time from the origin airport plus the cumulative sum of actual leg times. In this way, the airport scheduling algorithm will be using information appropriate to the information regime in place. Similarly, the algorithm will compute backwards from an arrival time using the reverse cumulative sum of preferred leg times to arrive at a backTTO for each flight leg. This backTTO is used by the Waypoint Scheduler to keep flights on schedule. It is also used in the Airport Scheduler as a CTOT. If all regions are at Release Level R0 then the backTTO is calculated from the scheduled arrival time (which we set equal to the scheduled departure time plus preferred trip time). So under R0, there is no difference between the scheduled departure time and the CTOT. No collaborative ground delays are possible. However, if both origin and destination FIRs are at level R1, then the CTOT at the origin airport will reflect the current arrival plan for the destination airport. In this way, the airports can collaborate, where the origin airport can delay a departure until the CTOT.
+\end{itemize}
+
+The functions needed to execute a single step of the simulation are as follows:
+\begin{itemize}
+    \item \textbf{NETSIM-121: Extend Schedule of Active Flights}: In this function, the software simulator checks to see if there is an adequate sequence of flights in the future available for look-ahead decisions (such as arrival and departure sequencing). If needed, it fetches the next batch for scheduled flights from the flights database and matches them with pre-calculated flight paths for origin-destination pairs to create a flight plan for each flight. The Aircraft Speed Profile Algorithm is then used to compute a preferred speed for each leg of each flight together with minimum and maximum speeds. These are added to the simulation data in the form of Active Flights and Trajectories. 
+    \item \textbf{NETSIM-122: Schedule Flights at Airports and Waypoints Based on Algorithm Choice --- WFR+AFR}: In this function, the software simulator considers each airport in the region, one by one, and updates a dynamic schedule of arrival and departure times for each active flight arriving or departing at that airport. The information available about each flight depends on the information regimes of origin and destination FIR. For example, if both FIRs are at level R1 then the departure airport will know the CTOT as calculated by the arrival airport and the arrival airport will know the updated departure time from the departure airport. If either FIR is at level R0, then both airports will know only the original schedule information and no updates in either departure time or CTOT. This function makes use of either the Arrival and Departure Queue Pressure or FCFS Algorithm. It also uses the Forward and Backward TTO Calculation by Information Regime. For the WFR component, the software simulator considers each FIR in the region, one by one, and updates the portion of the trajectory of each active flight which intersects that FIR. The chief concern of the WFR is to ensure that no two flights arrive at any node in the FIR too close in time to each other. The required minimum separation times are derived from the Waypoint Capacity Scenario and Sub-Scenario for this simulation. It accomplishes this separation by adjusting planned flight speeds along each future leg of the flight plan (we assume that the speed on the current leg and previous legs are fixed). If changes in speed are not sufficient to resolve separation conflicts, the scheduler can resort to vectoring or holding activities. The WFR also attempts to keep the flight on schedule by scheduling the TTO of the last leg endpoint as close as possible to the target TTO for that waypoint. This optimization problem is solved using the GDA or SA Algorithm. The WFR is also used to fine-tune the arrival and departure times to make them consistent with en route trajectories. Like the Airport Scheduler, it also uses the Forward and Backward TTO Calculation by Information Regime.
+    \item \textbf{NETSIM-122: Schedule Flights at Airports and Waypoints Based on Algorithm Choice --- DES}: In this function, the software considers the same constraints as the AFR+WFR, and schedules aircraft trajectories, with a minimum separation observed between all flight pairs using the same resource. This algorithm also decides on the choice of channels at airports. In the main loop of the DES, we process all events in non-decreasing order of time. For flights subject to collaborative ground delays, we employ a First Scheduled, First Served (FSFS) algorithm, where flight events are processed in order of their scheduled time, rather than the time of which they arrive at a given node. Events may refer to either flight events or resource events, and a resource refers to a unique node-channel pair. Flight events first assigns a TTO to the current flight leg that is being processed, and subsequently adds a resource event to mark when the node will next be available to schedule any pending flight legs. Finally an event is added to mark the next leg in its flight path as pending, if any. Resource events signify times at which a resource is available. An event indicating a specific resource is available, will trigger a check to assign the next available flight to this resource, if any. At the end of processing all events, the DES will have generated conflict free TTOs for all flights within the current simulation step. These TTOs uniquely determine the time between any two nodes in a flight path, and the difference from the preferred leg time is first assigned to a decrease in speed, and any remaining difference to an extraordinary hold time. The output format of the DES matches that of the AFR+WFR, and either algorithm can be chosen without any modifications to the data format or subsequent analysis.
+    \item \textbf{NETSIM-124: Advance Simulation}: This function advances the simulation clock by one time step (currently set at 5 minutes). Each flight is checked and updated as to whether its stage of flight will change by the end of that time step. The stages of flight are:
+        \begin{itemize}
+            \item Not Ready: The aircraft is not available for departure until its scheduled departure time or CTOT, whichever is later;
+            \item Ready: The aircraft is available for departure;
+            \item Pushback: The aircraft has a committed departure time in the future;
+            \item En Route: The committed departure time has passed so the aircraft is in the air en route to its destination but without a committed arrival time;
+            \item Approach: The aircraft is near the destination airport but has not been given a committed arrival time;
+            \item Final: the aircraft has a committed arrival time in the future; and
+            \item Land: The committed arrival time has passed so the aircraft has landed. It becomes a completed flight at this point.
+        \end{itemize}
+    \item \textbf{NETSIM-125: Archive Completed Flights and Trajectories}: This function removes completed flights from the simulation data (to conserve computer memory) once they are sufficiently far in the past to not violate separation constraints between any active and future flights. These removed flights will also be archived for subsequent analysis. Two tables are maintained: the flights table (one row per completed flight) and the trajectories table (one row per leg of each completed flight).
+\end{itemize}
+
+%--------------------------------------------------------
+\subsubsection{User Interface Design}
+\label{sub:UI}
+We envision three key user categories for the FF-ICE simulator --- Administrator, Analyst, and Designer. 
+
+The administrator would be the user that sets up the FF-ICE simulator. The administrator will first install the necessary software, including R and MySQL. For our partnering associations, a user manual is also provided to guide the user through the setup process. After setting up the required software and user permissions, the administrator may then utilize the administrator app, as illustrated in Figure \ref{fig:appadmin}, which contains three main tools. The first tool \textit{Check Database Connections}, verifies if the installation and app and database credentials are correctly set up. The next is a tool that initializes all databases based on a default empty database file, which is provided together with the FF-ICE simulator and should not be modified. Finally, the administrator may also choose to restore the database from a database file, if prior runs had been conducted and a database file was shipped together with the software or saved by a previous user. In most cases, the latest or most significant results would have been showcased to our partners, and the runs of which the results are based on, will be included as a supplementary database file that can be used with the \textit{restore database} tool to copy the data onto the current computer.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appadmin.png}
+    \caption{Administrator App: Database Set Up Screen}
+    \label{fig:appadmin}
+\end{figure}
+
+Next, the designer would be the user that creates and runs simulations. The system definition of this user is captured in Figure \ref{fig:NETSIM1}, where the designer will specify the combination of Network Case, Flight Schedule Selection, Capacity Scenario, Capacity Sub-Scenario, Information Regime, and Algorithm Choice to create a new simulation index with constants dictating the options selected. The UI for selecting the choices are given in Figure \ref{fig:appdesigner1}, where the designer can use the drop down lists to select an option for each choice. We follow the order of arrows in Figure \ref{fig:NETSIM1}, and go from left to right, top to bottom on Figure \ref{fig:appdesigner2}, explaining the possible processes to be run on the designer app --- \textit{Run Simulation}. The designer first selects the simulation index to perform runs on, and from here, the designer may click on \textit{Initialize/Reset the Simulation}, which deletes all prior runs corresponding to the simulation index, if any. Thereafter, the designer can input the number of steps to run, each step corresponding to 5 minutes of simulated time, and click \textit{Run Simulation} to start the runs for the selected simulation index. The \textit{Run Simulation} button initiates a procedure that is described in the \textit{NETSIM-12} process. The designer also has the option to \textit{Select history detail level}, where a .rds file will be saved for each simulation step if \textit{Complete history} is selected, and only for the final simulation step otherwise. The .rds files are intended primarily for debugging purposes by the ASI team in the event of application malfunctions, and should be disregarded by all other users. Finally, the designer has the liberty of terminating the runs prematurely by clicking \textit{Stop Simulation}, which will stop the runs once the current simulation step is completed. The runs may be stopped and continued at any time. No data loss will occur, nor will there be any difference in results regardless if the runs are completed in single session or across multiple batches.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appdesigner1.png}
+    \caption{Designer App: Choice of Design Settings To Initialize a Simulation}
+    \label{fig:appdesigner1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appdesigner2.png}
+    \caption{Designer App: Tool For Running and Saving Simulations}
+    \label{fig:appdesigner2}
+\end{figure}
+
+Once multiple runs have been completed, the analyst will be able to compare two simulations, with the main inputs and outputs depicted in the system definition diagram in Figure \ref{fig:NETSIMContext}, and draw analyses and insights from the reported results. The FF-ICE simulator also allows the analyst to generate various plots and diagrams to further understand the results. First, the analyst will select two simulation indices, of which is most often aligned on every setting except for the information sharing scheme, labeled \textit{regime} and \textit{scheme} in Figure \ref{fig:appanalyst1}. Also in Figure \ref{fig:appanalyst1}, clicking the \textit{compare} button will identify flights that are present in both simulations, and compute the comparison statistics for these flights, as shown in the bottom of the figure. Here, there are more columns in the results comparisons than in Figure \ref{fig:NETSIMContext}. However, the extra columns are not used in the results presented earlier in this paper, nor in any of our analyses, hence have not been included in the the NETSIM diagram. Upon scrolling further down, the analyst will be presented with more diagrams and analytic tools to take a more detailed look at the results. The next tool in the dashboard is the histogram in Figure \ref{fig:appanalyst2}, which provides a visualization of how fuel savings, and number of flights vary throughout the simulation period (24h in this example). The analyst may use the drop down list from \textit{Select Number of Hub Airports} to select how many of the top airports, by number of flights, that should be plotted with a different color. Further down in the analyst app, the analyst would find an option to compute the comparison statistics similar to Figure \ref{fig:appanalyst1}, but computed only for the selected airport. Also, a bird's-eye view of which airports benefit from or are disadvantaged by the FF-ICE R1 initiative, as illustrated in Figure \ref{fig:appanalyst3}, is provided. In this map plot, the green lines represent time savings under the Special Case, while red lines represent negative time savings, i.e. increased delays. The thickness of the lines reflects the magnitude of savings, with thicker lines corresponding to increased savings. Only airports pairs which have significant savings or delays, whose sum of absolute values is greater than the mean absolute savings, have lines plotted between them. 
+
+The next tool, the TTO vs Scheduled R0TTO Graph, in Figures \ref{fig:appanalyst4} and \ref{fig:appanalyst5}, starts with the analyst selecting a flight, which will generate the TTO vs Scheduled R0TTO Graph, with the TTO on the y-axis and R0TTO on the x-axis. The dotted line is the baseline result, which represents the expected plot if the flight has zero delays, where the TTO on every flight leg matches its scheduled time exactly. When a line lies above the dotted line, it indicates that the flight has been delayed, and the TTO is later than the scheduled R0TTO. In Figure \ref{fig:appanalyst4}, we observe that the turquoise line, representing the Special Case (FF-ICE R1 in this example), is higher than the red line, and this delay started from the first node on the left, implying that it was assigned a ground delay. Figure \ref{fig:appanalyst5} provides a close up view of the last node in Figure \ref{fig:appanalyst4}. Here, we see a perfect overlap of the turquoise and red line at WADD, which reveals a successful ground delay, where the ground delay on the turquoise flight led to a later departure, with no change in arrival time, from which the analyst can conclude that a decrease in flight time was observed. 
+
+The last analyst app in Figure \ref{fig:appanalyst6} provides a visual representation of the entire flight trajectory of a selected flight. The horizontal length of the bars in this plot represent the required separation time, where a longer bar indicates a larger required separation time, and the block of time that has been reserved for a particular aircraft leg. The colors indicate whether a flight has been completed, i.e., archived and no longer under consideration by the optimization algorithms, or active. Also, the additional image layer of \textit{GDP Flights} can be toggled on or off by clicking anywhere within the bounding box of the red bar and \textit{GDP Flights} on the legend. To give an example of how to interpret this graph: the analyst could follow the trajectory of the selected flight by focusing on the black bars, and perhaps observe changes in flight patterns of the selected flight itself, or any adjacent flights to the selected flight under the Base Case and Special case.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appanalyst1.png}
+    \caption{Analyst App: Simulation Index Selection Screen}
+    \label{fig:appanalyst1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appanalyst2.png}
+    \caption{Analyst App: Histogram Displaying Savings at Individual Airports}
+    \label{fig:appanalyst2}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appanalyst3.png}
+    \caption{Analyst App: Map of Airborne Savings of Flights Arriving at VHHH (Hong Kong International Airport)}
+    \label{fig:appanalyst3}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appanalyst4.png}
+    \caption{Analyst App: TTO vs Scheduled R0TTO Graph}
+    % , With the Turquoise Line Above the Red Line Indicating the Flight in simid 170 Occured Later than in simid 169
+    \label{fig:appanalyst4}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appanalyst5.png}
+    \caption{Analyst App: A Zoomed-in View of TTO vs Scheduled R0TTO Graph}
+    % Figure \ref{fig:appanalyst4} that Illustrates the Flight Arriving at WADD at the Same Time in Both Simulations (simid 169 and simid 170)}
+    \label{fig:appanalyst5}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appanalyst6.png}
+    \caption{Analyst App: Flight Trajectory Graph}
+    \label{fig:appanalyst6}
+\end{figure}

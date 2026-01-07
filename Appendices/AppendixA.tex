@@ -1,0 +1,57 @@
+% Appendix A
+
+\chapter{Computational Analysis And Considerations For Gradient Descent}
+\label{AppendixA}
+The crux of this section is to detail how for-loops were avoided in R, as these require multiple function calls in R, as compared to the vectorization method of programming, which interfaces C and FORTRAN, while requiring only a single function call in R.
+
+We start by enumerating through every waypoint $w\in W_I$, utilizing the \texttt{combn()} function to generate all possible combinations of conflicts at each waypoint. The \\ \texttt{inner\_join()} function then combs through previously initialized data to add more information such as \textit{equipment\_id}, \textit{time\_id} and \textit{required\_separation} for each conflict.
+
+The partial derivatives with respect to $\lambda$ are then straightforward to construct, and can be done by creating two vectors, storing the time values of all nodes $n$ for flight $f$ and flight $f'$ with length equal to the cardinality of $\lambda$. Subsequently, the $\texttt{pmin}$ function in R can be used to enumerate over all indices in $\lambda$, and simultaneously compute $\min\left\{\frac{\partial\mathcal{L}\left(\beta^{\left(n\right)},\lambda^{\left(n\right)}\right)}{\partial\lambda},\delta_w\left(f,f^\prime\right) \right\}$. Since the partial derivatives of the Lagrangian with respect to $\beta$ and $\lambda$ require us to find the values of $t_{fn}$, we have to do a cumulative sum over all the records for each unique flight. Here, we recommend $\texttt{ave()}$ over dplyr's \texttt{$group\_by() \%>\% mutate()$} as we found it to be roughly 5 times quicker. Here, the pipe operator in R is denoted as $\%>\%$.
+
+The partial derivatives with respect to $\beta$ require some programming tricks to avoid for-loops. We begin by providing a small-scale example of the implementation. Assume flights 1 and 2, both traveling entering node 1, traveling to node 2, then exiting at node 3. We will initialize and subsequently take the dot product of two matrices, which possess the datatype \texttt{sparse Matrix of class "dgCMatrix"} as such:
+\begin{align}
+\label{eqn:partial_b}
+    \left[\begin{matrix}1&0&0&0&0&0&0&0&0\\0&1&0&0&0&0&0&-1&-1\\0&0&1&0&0&0&0&0&-1\\0&0&0&1&0&0&0&0&0\\0&0&0&0&1&0&0&1&1\\0&0&0&0&0&1&0&0&1\\\end{matrix}\right]\cdot\left[\begin{matrix}0\\2\left(t_{13}-{\tilde{t}}_{13}\right)\\2\left(t_{13}-{\tilde{t}}_{13}\right)\\0\\2\left(t_{23}-{\tilde{t}}_{23}\right)\\2\left(t_{23}-{\tilde{t}}_{23}\right)\\\lambda_{121}k\left(t_{11},t_{21}\right)\ast \textrm{sgn} \left(t_{11}-t_{21}\right)\\\lambda_{122}k\left(t_{12},t_{22}\right)\ast \textrm{sgn} \left(t_{12}-t_{22}\right)\\\lambda_{123}k\left(t_{13},t_{23}\right)\ast \textrm{sgn}\left(t_{13}-t_{23}\right)\\\end{matrix}\right]
+\end{align}
+The left chunk of the left matrix, is a diagonal square matrix of size equal to the number of legs summed over all flights and is used to maneuver flights towards the preferred exit times. The right chunk of the left matrix has width equal to the number of conflicts, and is used to ensure flights are sufficiently separated, with $-1$ for flights that occupy the first position of the $k(\cdot,\cdot)$ function, and $1$ for flights that occupy the second position. These values of $1$ and $-1$ are matched to the terms containing $\lambda$ if the current flight leg, or its previous associated legs, are involved in the conflict specified by $\lambda$. It is crucial to note that the first three rows, which are associated with flight 1, have the right chunk of the left matrix cumulatively summed upwards such that conflicts on later flight legs would cause changes in earlier legs. This is consistent with the intuition that the TTO of the current flight leg is dependent on all previous legs. For the right chunk, we also set the first row of each flight to contain only zeros, as we cannot change the value of the entry time. This will help us save computational time when we perform a gradient descent step. 
+
+With the matrices set up, we are now able to take advantage of the computationally efficient matrix multiplication operator \texttt{\%*\%} in R to obtain the partial derivatives with respect to $\beta$. The resulting vector will be of length equal to the number of legs summed over all flights. This vector \textit{partial\_b} will be multiplied by the step sizes $\eta_{fj}$, where we set 
+\begin{equation*}
+    \eta^{(i)}_{fj}=\left\{\begin{matrix}0 & if\ j=1\\
+    \left({\underline{d}}_{fj}-{\overline{d}}_{fj}\right)^{(i)} \ast \textit{partial\_b}^{(i)} & otherwise\\\end{matrix}\right.
+\end{equation*}
+where $(i)$ represents the index of the vector. We have that $j=1$ being indicative of an entry node with fixed time $t_{f1}$ and that we are unable to modify this value. We also included the expression $\left({\underline{d}}_{fj}-{\overline{d}}_{fj}\right)$ which was factored out from $\frac{\partial\mathcal{L}}{\partial\beta_{fj}}$ as placing more computations in the step size reduces the computational burden in the partial derivatives which have to be computed repeatedly at each iteration.
+For a design case of $\sim10^5$ conflicts, this method of using matrices has been tested to be faster than for-loops by a factor of $\sim 10^3$.
+
+Finally, we provide an analysis of two methods to create the right chunk of the left matrix in Matrix \ref{eqn:partial_b}, given the table of conflicts described in the second paragraph of this section. We refer to the right chunk as \textit{RightChunk} The first method is to use dplyr's \texttt{$group\_by(flight\_id) \%>\% mutate(across(1:ncol(RightChunk), ~revcumsum(.x)))$}. This method is extremely sluggish since as it requires a datatype conversion of the sparse matrix into a dataframe and more critically, \texttt{across()} encodes a for-loop over all columns. The second and more efficient method is to first create a long dataframe that links each leg to all its previous legs and use this to create the sparse matrix. For example, assume we have a single flight path visiting 6 nodes, which implies this flight has 5 legs (equivalently betas) associated with it. The last node will be impacted by any changes in the 5 legs, hence has 5 rows, linking it to the $t\_id$ of all its previous legs. This linking process is then repeated, associating each $t\_id$ with all its previous legs. We can then \texttt{left\_join()} the associated legs in Table \ref{tab:assoct} with the table of conflicts and use this new longer conflicts table to create the sparse matrix.
+
+From our tests, a significant amount of time is saved using the associated legs method. For a subset of $\sim 1000$ conflicts and 2500 flight legs, 3.5s is required to build the matrices using the dplyr method, as compared to 0.035s using the associated legs method.
+
+
+\begin{table}[htbp]
+\centering
+\begin{tblr}{||Q[c,8em]|Q[c,8em]||}
+\hline
+Actual $t\_id$ & Associated $t\_id$\\
+\hline\hline
+1 & 1\\
+2 & 2\\
+3 & 2\\
+3 & 3\\
+4 & 2\\
+4 & 3\\
+4 & 4\\
+5 & 2\\
+5 & 3\\
+5 & 4\\
+5 & 5\\
+6 & 2\\
+6 & 3\\
+6 & 4\\
+6 & 5\\
+6 & 6\\
+\hline
+\end{tblr}
+\caption{Long Table for Associating the Current Leg with Previous Legs}
+\label{tab:assoct}
+\end{table}

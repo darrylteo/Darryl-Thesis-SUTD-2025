@@ -1,0 +1,574 @@
+\chapter{Value of Information Sharing and Collaboration}
+\label{chap7}
+The previous chapters have laid the foundation for our Air Traffic Flow Management (ATFM) model, and explored, in detail, the implementation of multiple different algorithms to effectively schedule conflict-free flight plans. This chapter serves to explore the value of information sharing and collaboration under the FF-ICE R1 regime.
+
+We first discuss and compare the results of the segregated Airport Flow Regulator (AFR) and Waypoint Flow Regulator (WFR) algorithms against the Discrete Event Simulation (DES). Next, we give our reasons for proceeding with further experiments using the DES instead of the AFR and WFR algorithms. We then dive into the difference in airborne savings for mixed mode information sharing, for both full and incremental participation of the FF-ICE R1 program. Finally, we uncover the source of these airborne savings, be it by time of the day, number of participating flights, particular airport pairs, or the broader impact on non-participating flights due to the FF-ICE R1 program.
+
+%--------------------------------------------------------
+\section{Comparison of Algorithms}
+\label{sec:compRes}
+% For brevity, for the remainder of this chapter, all results are display data for completed flights for the 2023-10-01 published flight data within ASEAN plus region dataset, where the simulator was run from the simulated time of 00:00:00 UTC, up until 04:00:00 UTC. We refer to reader to subsection \ref{sub:GDAres}, for details on the dataset used, where the only difference lies in the number of simulated time steps that have been completed.
+
+% The PC specifications used to run all the code are Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz with 16 GHz installed RAM. The code was written in R, except for the SA heuristic, which was written in Java.
+
+From Table \ref{tab:3algo}, we immediately notice that both the GDA and SA algorithms generate an abnormally large amount of delay, both arrival and on ground, as compared to the DES. The GDA also performed worse than the SA, similar to the results obtained in Section \ref{sec:WFRcompare}. While the GDA and SA perform well on short time horizons spanning a few hours, their limitations become apparent when extended to simulate an entire day of flight plans. There are two possible reasons for this. The first is what we term \textit{drifting}, which we define as a leg entering a vicious cycle of delays. In the GDA and SA model, both conflict resolution and deviation from preferred time enter the objective function, with conflict resolution having a significantly higher penalty coefficient. This causes conflict resolution to be prioritized, and over hundreds of runs and information updates across FIRs and time steps, the TTOs in the solution begin to drift. Under the GDA and SA algorithms, conflict resolution tends to occur by incrementally increasing all TTOs rather than decreasing them, leading to progressively greater delays as the simulation progresses. This is contrasted by the DES, where flights are scheduled as early as possible, with little to no gaps between flights, except for the minimum required separation time.
+
+The second reason stems from the relative lack of flight resequencing. In the WFR, a flight’s departure TTO is strictly constrained to be no earlier than the TTO assigned during the preceding AFR step. Once the AFR has been executed, its departure times are enforced in the WFR, meaning that a flight can be further delayed but not advanced, even if a time gap opens up due to another flight’s delay. This restriction prevents the system from utilizing newly available capacity, resulting in inefficiencies and unnecessary delay propagation. Moreover, because resequencing is uncommon under both the GDA and SA heuristics, conflicts tend to propagate along the flight path, increasing the TTOs of the flight legs. These shifts then delay other flights due to the preserved sequence, again failing to exploit the space vacated by delayed flight legs. This cascading effect can lead to a disproportionate increase in both airborne and ground delay. In contrast, such behavior is mitigated in the DES, where gaps left by delayed flights will be filled by other flights under the FCFS or FSFS queuing system.
+
+In addition to the reasons discussed above, the DES is more clearly aligned with our vision for the FF-ICE simulator. We envision the simulator as a tool that can accurately capture how countries might benefit from enhanced information sharing and collaborative decision-making. The DES framework makes these benefits clearer, more interpretable, and more representative of real-world operations. Unlike optimization-based approaches, DES mirrors current ATC practices, where decisions under regular conditions are guided by simple rules, such as FCFS and FSFS \parencite{Erkan2019, Ma2024}. As such, it provides a more realistic and operationally grounded platform for simulating FF-ICE scenarios.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comparison Table For All at R0 Regime for 1 Oct 2023 Flight Plans}
+    \begin{tabular}{@{}m{2cm}m{3cm}m{4cm}m{4cm}@{}}
+    \toprule \toprule
+    Algorithm &  Avg. Flight Time (min.) & Avg. Arrival Delay (min.) & Avg. Ground Delay (min.) \\
+    \midrule \midrule
+    \text{DES}   & 147.02 & 5.74  & 2.68 \\
+    \text{GDA}   & 191.43 & 60.95 & 13.44 \\
+    \midrule
+    \text{DES}   & 147.50 & 5.74  & 2.69 \\
+    \text{SA}    & 172.35 & 34.01 & 6.07 \\
+    \midrule
+    \text{GDA}   & 191.87 & 61.16 & 13.48 \\
+    \text{SA}    & 172.26 & 34.15 & 6.08 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:3algo}%
+\end{table}%
+
+
+% The purpose of Table \ref{tableAlternativeAlgorithms} is to demonstrate the effect of information sharing and collaborative ground delay programs under different information regimes. The three comparisons, display the key result that collaborative ground delay programs are effective in reducing the airborne time, as seen from the reduction in airborne time for all three algorithms when going from FF-ICE R0 to R1. The increase in ground delay, going from R0 to R1, for the GDA and SA algorithms were significantly higher than that of the DES. From our observations when testing, this stems from two causes. The first, is that channels are being fixed by the AFR, and the WFR has no freedom in selecting channels even when an aircraft is in its FIR. This causes unnecessary delays where, at the time of the AFR, a channel could have been busy but is now free during the run of the WFR and no aircraft is slotted into a currently free block of time at this channel by the WFR. The second reason is that, the departure TTO in the WFR is strictly later than that as input from the AFR. Note that as the simulation proceeds from the AFR to the WFR in one simulation step, the values provided in the Table \ref{tableAlternativeAlgorithms} are after the WFR has been run. After the AFR has been run, the departure times are enforced for the WFR, where the TTO at a departure node can only be set to be no less than that given by the AFR. Due to conflicts on subsequent nodes in the flight path, the departure TTO may be increased, also causing the departure TTOs of other aircraft to increase, since swapping of sequences is uncommon for both the GDA and SA heuristics. This potentially causes cascading effects of increasing departure TTOs, leading to a disproportionate increase in ground delay time. Next, using Table \ref{tableAlternativeAlgorithms2}, we compare the results for the FF-ICE R0 regime, where no ground holding is imposed, abstracting away any information sharing for the current comparison. It is clear that the values across all measurements are materially lower for the DES. Again, from our observations during testing, the separation of control between the AFR and WFR is the most significant factor leading to increasing the TTOs inordinately. The separation of control between the AFR and WFR lead to impractical results, where jarring situations caused by fixing the channel even if a flight is not yet in the landing FIR were observed.
+
+% This was the motivation for reformulating the problem using a discrete event simulation and the explicit use of First-Scheduled-First-Served priority logic for flights which had both origin and destination in FIRs at release level R1. The essential system components leading to the savings are the transmission of Calculated Take-off Times, CTOTs, from destination to origin airports, the acceptance and implementation of these CTOTs by the origin airport, and the preferential treatment of CTOT-delayed flights when they reach the destination airport.
+
+% \begin{table}
+% \begin{center}
+% \resizebox{14cm}{!}{
+% \begin{tabular}{|c|c|c|c|}
+% \toprule
+% \text{Algorithm} &  \text{Avg. Flight Time (min.)} & \text{Avg. Arrival Delay (min.)} & \text{Avg. Ground Delay (min.)} \\
+% \cmidrule{1-4}
+% \text{DES R0}   & 119.6 & 5.19  & 2.36 \\
+% \text{DES R1}   & 119.0 & 5.47  & 3.19 \\
+% \cmidrule{1-4}
+% \text{SA R0}    & 139.7 & 11.78 & 3.51 \\
+% \text{SA R1}    & 137.2 & 12.59 & 6.90 \\
+% \cmidrule{1-4}
+% \text{GDA R0}   & 132.4 & 9.28  & 3.44 \\
+% \text{GDA R1}   & 130.1 & 11.08 & 7.48 \\
+% \bottomrule
+% \end{tabular}}
+% \end{center}
+% \caption{Comparison of Algorithms Under the Regular Capacity Scenario: R0 Vs. R1}
+% \label{tableAlternativeAlgorithms}
+% \end{table}
+
+% \begin{table}
+% \begin{center}
+% \resizebox{14cm}{!}{
+% \begin{tabular}{|c|c|c|c|}
+% \toprule
+% \text{Algorithm} &  \text{Avg. Flight Time (min.)} & \text{Avg. Arrival Delay (min.)} & \text{Avg. Ground Delay (min.)} \\
+% \cmidrule{1-4}
+% \text{DES R0}   & 120.4 & 5.26  & 2.45 \\
+% \text{GDA R0}   & 123.7 & 10.01 & 3.86 \\
+% \cmidrule{1-4}
+% \text{DES R0}   & 119.0 & 5.26  & 2.48 \\
+% \text{SA R0}    & 125.4 & 12.92 & 3.77 \\
+% \bottomrule
+% \end{tabular}}
+% \end{center}
+% \caption{Comparison of Algorithms Under the Regular Capacity Scenario: DES Vs. GDA Vs. SA}
+% \label{tableAlternativeAlgorithms2}
+% \end{table}
+
+
+% ==========================================================================================================================================
+\section{Computational Results}
+\label{sec:results}
+To reiterate from Section \ref{sec:datasources}, t the dataset used for our experimental runs are published flight plans, obtained from OAG, for flights arriving or departing from the ASEAN plus region between 1 Oct 2023 and 7 Oct 2023. The necessary data required to build the airspace network include FIR boundaries, waypoint and airport nodes, and flight paths connecting all possible origin and destination airports pairs. The FIR boundaries were derived from ICAO geographical data, and modeled as a series of polygons. The nodes and connecting arcs used in our simulations are obtained by processing Aeronautical Information Publication (AIP) documents published by each country's civil aviation authority, and are presented in Figure \ref{fig:nodes}. Using the nodes, and the origin-destination airports pairs, we applied Dijkstra's shortest path algorithm to generate flight paths for all aircraft. The paths in our dataset are plotted in Figure \ref{fig:arcs}.
+
+For the results below, we reiterate that a flight is completed from the perspective of the FIR of interest and will be archived as soon as condition \ref{eq:archive} is satisfied. We model a look-ahead period of two hours, such that all flights with at least one active or frozen leg during the next two hours will be added into consideration for the discrete event simulation algorithm, and we set the time shift for the sliding window at five minutes, that is, we reschedule flights for the next two hours, at every five-minute interval. 
+
+The base airspace capacity is determined quantitatively by collecting information for the average number of flight traversals in each FIR, similar to the method employed in \parencite{Tan2021}. The reduced airspace capacity is computed by synthetically reducing the original airspace capacity at arrival and departure nodes to 0.80 of their original levels, rounded up to an integer value. These capacity values are then used to compute the required separation time between aircraft by dividing the number of seconds in an hour by the number of flights in an hour. 
+
+We introduce the columns and their respective definitions that are common to many of the result tables in this section:
+
+\begin{itemize}
+    \item \textbf{Day}: Selected day for the current simulation;
+    \item \textbf{Capacity}: Either the base or reduced airspace capacity scenario;
+    \item \textbf{Regime}: The information regime that specifies which FIRs under consideration operate at FF-ICE release level R0 or R1;
+    \item \textbf{Collaboration}: The collaboration protocol, that further refines the regime by selecting a subset of flights that are currently at FF-ICE R1, and set all other flights to R0. Example of possible protocols are allowing collaboration only between particular airport pairs, or airlines;
+    \item \textbf{No. of Matching Flights}: The number of matching flights between the two simulations currently under consideration;
+    \item \textbf{Avg. Flight Time}: The average airborne flight time in minutes, for all matching flights in the selected simulation;
+    \item \textbf{Total Flight Time Difference}: The difference between airborne flight time in minutes, summed over all matching flights in the selected simulation pair;
+    \item \textbf{Avg. Arrival Delay}: The average delay in minutes, at the destination airport for all matching flights in the selected simulation. An arrival delay is calculated by subtracting the scheduled arrival time (R0TTO) from the actual arrival time at the destination airport (TTO);
+    \item \textbf{Avg. Ground Delay}: The average ground delay time in minutes, for all matching flights in the selected simulation;
+    \item \textbf{Avg. Fuel}: The average fuel consumed in kg, for all matching flights in the selected simulation. Computations are based on the BADA fuel formulae \parencite{EUROCONTROL2019}.
+\end{itemize}
+
+% The PC specifications used to run all the code are Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz with 16 GHz installed RAM. The code was written in R.
+
+% The purpose of Table \ref{tableAlternativeAlgorithms} is to demonstrate the importance of the choice of optimization algorithms in simulating the effect of information sharing and collaborative ground delay programs under different information regimes. We argue that the discrete event simulation approach with FSFS is a more realistic representation of collaborative decision-making. The first row of the table compares two simulations (simid's 3 and 60) both run using the combination of First-Come-First-Served for airport scheduling and Gradient Descent optimization for waypoint scheduling. Simid 3 is run with all FIRs operating under release level R0. Simid 60 is run with all FIRs under release level R1. The disappointing phenomenon is that the increase in ground delays under release R1 is exceeded by an increase in arrival delays. On average, there is an increase in airborne time of 0.23 minutes per flight and a total increase of 4.42 hours. This poor performance of the gradient descent-based algorithm was the motivation for switching to discrete event simulation and the explicit use of First-Scheduled-First-Served priority logic for flights which had both origin and destination in FIRs at release level R1. The second row of the table compares simulation runs for the same two information regimes (all R0 and all R1) but using the revised optimization algorithm. Here we see a much larger use of ground delay (0.83 minutes per flight versus 0.27 minutes per flight) and a much reduced arrival delay (0.29 versus 0.50 minutes per flight) leading to a net reduction in airborne time of 0.54 minutes per flight. Aggregated over the 1181 matching flights in the region for the two simulations, the total savings amount to 10.63 hours. 
+
+% We believe the reduction in airborne time is due to the preferential treatment given to R1-level flights when they reach the destination airport. Under the FCFS+Gradient Descent algorithm, an aircraft entering the arrival queue at a destination airport is processed according the earliest time it can reach the airport, given its current trajectory. Thus, if it was given a CTOT delay of, say, 5 minutes at the origin airport, its earliest arrival time is thus delayed by 5 minutes. If the destination airport is congested, the other flights arriving during that 5 minute interval would have higher priority in the arrival sequence than the delayed flight. The delayed flight would then experience an airborne holding delay at the destination airport, perhaps as much as what it would have experienced if it had not accepted the CTOT delay. The essential system components leading to the savings are the transmission of Calculated Take-off Times, CTOTs, from destination to origin airports, the acceptance and implementation of these CTOTs by the origin airport, and the preferential treatment of CTOT-delayed flights when they reach the destination airport.
+
+% \begin{table}
+% \begin{center}
+% \resizebox{14cm}{!}{
+% \begin{tabular}{|c|c|c|c|c|c|c|c|}
+% \toprule
+% \text{} &\text{} & \text{ } &\text{Matching} & \text{Avg. Ground} & \text{Avg. Arrival} & \text{Avg. Airborne} & \text{Total} \\
+% \text{Simid (R0)} &\text{Simid (R1)} & \text{Algorithm} & \text{Flight Counts} &  \text{Delay (min.)} & \text{Delay (min.)} & \text{Savings (min.)} & \text{Savings (hr.)} \\
+% \cmidrule{1-8}
+% 3 & 60 & \text{GDA FCFS} & 1153 & 0.27 & 0.50 & (0.23) & (4.42) \\
+% 1 & 36  & \text{DES FSFS} & 1181 & 0.83 & 0.29& 0.54& 10.63 \\
+
+% %\midrule
+% % &&&&&&\\
+% %\cmidrule{1-7}
+% %\multicolumn{7}{c}{ }\\
+% %\cline{1-6}
+% \bottomrule
+% \end{tabular}}
+% \end{center}
+% \caption{Alternative algorithms for the base case R0 vs. R1 simulations: Gradient Descent with First-Come-First-Served (GDA FCFS) vs. Discrete Event Simulation First-Scheduled-First-Served(DES FSFS)}
+% \label{tableAlternativeAlgorithms}
+% \end{table}
+
+% ==========================================================================================================================================
+\subsection{Smoothing Parameter and Capacity Scenarios}
+A critical source of benefit from information sharing stems from the congestion that occurs at airports. If all the airports in the region are only lightly congested, as was seen during the COVID-19 pandemic, we are unlikely to see much benefit from information sharing. The underlying reason for why benefits are proportional to congestion, is that airborne savings are primarily derived from GDPs. A flight is assigned a GDP when congestion is predicted at the arrival airport, causing it to depart later and arrive when a landing slot becomes available. Therefore, flights benefit through substituting airborne delays with the more resource-efficient ground delays. As higher levels of airport congestion lead to increased expected delays, more flights will be assigned GDPs, thereby creating greater potential for airborne time savings. Accordingly, as air traffic returns to pre-pandemic levels and continues to grow, we expect the benefits and importance of information sharing to continue on an upward trajectory. 
+
+To illustrate the effect of congestion we consider two capacity scenarios, a base capacity case and a reduced capacity case. In the base case, capacity envelopes are determined based on empirical estimates of current activity within the regional airports. In the reduced capacity case, the envelopes are shrunk by 20\%. Figures \ref{fig:CapacityEnvelopesBaseCase} and Figure \ref{fig:CapacityEnvelopesReducedCase} show the simulated airport activity at six major airports in the region for the two different capacity levels, together with the capacity envelopes enforced by the simulation. The bubbles represent relative frequency counts of simulated arrival-departure pairs over 15-minute intervals for an entire day of simulated flights, 1 Oct 2023. In the plots, the radius of the bubbles reflects the number of 15-minute intervals that contain the particular combination of arrivals or departures. Close inspection of the envelopes will reveal that the reduced capacity envelopes are approximately 80\% of the base case versions. For example, maximum departures at Singapore Changi airport (WSSS) are 60 per hour in the base capacity case, and 48 per hour in the reduced capacity case, a reduction of 20\%. Similarly, maximum arrivals at Jakarta (WIII) are 94 per hour in the base case and 76 in the reduced capacity case, a reduction of 19.7\%. We observe that in the base capacity case, operations in the 15 minute time interval are concentrated around the middle of the chart, indicating that airports are operating below the maximum capacity for most of the day. In contrast, the reduced capacity case capture a large proportion of bubbles near the borders of capacity envelope, indicating severe congestion at airports, where flights are scheduled one after another, most likely experiencing delays to precisely satisfy the minimum required separation. In both figures, the bubbles indicate that the simulated flight activity, which includes ground delays and airborne holding, obeys the capacity envelope at all airports with few exceptions. Similar findings across all other nodes reinforce the validity of our model, a three channel system with separation times, as an effective representation of airport capacity envelopes and flow regulation mechanisms.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width =1\textwidth]{Figures/CapacityEnvelopesBaseCase.pdf}
+    \caption{Frequency Counts and Capacity Envelopes Under the Base Capacity Case for Six Major Airports: Singapore (WSSS), Manila (RPLL), Jakarta (WIII), Bangkok (VTBD), Kuala Lumpur (WMKK), and Hong Kong (VHHH). Frequencies are Based on Arrival-Departure Counts in 15-min. Intervals for 1 Oct 2023}
+    \label{fig:CapacityEnvelopesBaseCase}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width =1\textwidth]{Figures/CapacityEnvelopesReducedCase.pdf}
+    \caption{Frequency Counts and Capacity Envelopes Under the Reduced Capacity Case for Six Major Airports: Singapore (WSSS), Manila (RPLL), Jakarta (WIII), Bangkok (VTBD), Kuala Lumpur (WMKK), and Hong Kong (VHHH). Frequencies are Based on Arrival-Departure Counts in 15-min. Intervals for 1 Oct 2023}
+    \label{fig:CapacityEnvelopesReducedCase}
+\end{figure}
+
+We recall from Section \ref{sec:IS}, that the implementation of ground delay programs included the use of a mixing parameter, PROFILEMIX. If a flight is not an R1-flight, that is, if one or both of origin and destination airports are at release level R0, then no adjustment is made to departure time based on a shared CTOT. If the flight is an R1-flight, then we have the origin airport adjust the planned departure time in the direction of the most recent computed CTOT. The PROFILEMIX parameter controls how reactive the origin airport is in responding to changes in CTOT. Our conjecture was that the optimal PROFILEMIX parameter would be less than 100\% based on machine learning experience in other domains, such as in the GDA algorithm, where we shift the TTO by a step size in the direction of the gradient, or in exponential smoothing to remove noise and bias in our forecasts \parencite{Gardner1985}. Surprisingly, our computational results do not support that conjecture. Figures \ref{fig:profilemixbase} and \ref{fig:profilemixred} show the results of varying the PROFILEMIX parameter for both the base and reduced capacity case (comparing information regimes All R0 with All R1). Under both capacity scenarios, the savings in airborne time continue to increase as the mix parameter is increased, with slight variation in the reduced capacity case. Consequently, we elected to run all further experiments setting the PROFILEMIX parameter at 1. That is, the origin airport plans to change departure times 100\% to newly calculated CTOTs transmitted to them. These preliminary results also bring to light the impact of congestion on the value of information sharing and collaboration. Based on the PROFILEMIX parameter with a value of 1, The maximum airborne delay savings jump from 4874 minutes to 14864 minutes, an increase of 205\%, for a 20\% reduction in capacity. This finding suggests that the value of information sharing and collaboration is strongly correlated with the congestion levels, stressing the need for information sharing and collaborative measures as air travel demand continues to outpace the increase of airspace capacity. We dive into greater detail on the value of information sharing and collaboration under FF-ICE R0 and FF-ICE R1 in the next section.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/profilemixbase.pdf}
+    \caption{Total Airborne Savings Under FF-ICE Plotted Against PROFILEMIX, Base Capacity Case. Results for the Simulation Using 1 Oct 2023 Flight Plans.}
+    \label{fig:profilemixbase}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/profilemixred.pdf}
+    \caption{Total Airborne Savings Under FF-ICE Plotted Against PROFILEMIX, Reduced Capacity Case. Results for the Simulation Using 1 Oct 2023 Flight Plans.}
+    \label{fig:profilemixred}
+\end{figure}
+
+% ==========================================================================================================================================
+\subsection{Results of the FF-ICE R1 Concept Over the ASEAN Plus Region}
+\label{sub:allR1}
+In this section, we analyze and compare the performance of flight trajectories of the current operational capabilities (FF-ICE R0), against the full collaboration and information sharing regime (FF-ICE R1). The analysis focuses on key performance metrics, including the average flight time, ground delay, arrival delay, and fuel consumption. The results obtained are based on simulation runs conducted over the ASEAN Plus region for a period of seven consecutive days, from 1 October 2023 to 7 October 2023, under both the base and reduced capacity scenarios. The raw results are presented in Table \ref{tab:r0vsr1}. We first discuss the results and their interpretation by column, and later summarize these results and identify key trends graphically.
+
+Comparing the columns \textit{Avg. Flight Time (R0)} and \textit{Avg. Flight Time (R1)}, we see that in all instances, the average flight time under the FF-ICE R1 regime is lower across all rows of the data. This indicates that across a whole day of simulated flights, collaborative measures and information sharing are effective in reducing the time spent in the air. This is also evident when we compare the results in the \textit{Avg. Fuel} columns, where the fuel consumed under the FF-ICE R1 regime is consistently lower than the FF-ICE R0 regime across all simulations.
+
+Looking at the arrival delays, we see that the both the arrival delays and ground delays are greater under FF-ICE R1 than FF-ICE R0. The ground delays are necessarily higher under FF-ICE R1 due to the GDPs assigned to flights which are expected to encounter delays enroute, or at the destination airport. Due to the GDPs however, new conflicts may be introduced, leading to the flights assigned a GDP not being able to reach the destination airport at its new reserved time slot, and hence were assigned a later arrival time slot than what was expected under the R0 case. As such, our preliminary conjecture is that the new conflicts introduced due to GDPs, are the primary cause of increased arrival delays at the destination airport under the FF-ICE R1 regime. Also, note that the flight time savings is equal to the difference between the increase in the arrival and increase in ground delay. This highlights the idea that flight savings stem from substituting airborne holding with ground holding. For example, looking at the second row of Table \ref{tab:r0vsr1}, we derive the following values:
+\begin{itemize}
+    \item Increase in average ground delay $=10.67-7.88=2.79$ mins;
+    \item Increase in average arrival delay $=19.62-18.49=1.13$ mins;
+    \item Difference in the increase of average ground and arrival delay $=2.79-1.13=1.66$ mins.
+\end{itemize}
+Notice that the difference in the increase of average ground and arrival delay matches the savings in average flight time of $154.90-153.24=1.66$ mins exactly. 
+
+For this study, we focus primarily on the difference in average flight time between the FF-ICE R0 and R1 regimes, as this value represents the key benefit of information sharing and collaborative decision-making, which leads to the greatest operational cost savings. While important in practice, average arrival delays are less relevant in this analysis as we chose to utilize a FCFS and FSFS scheduling system, which is more prevalent in real-world operations \parencite{Erkan2019, Ma2024}. Our rule-based algorithm, does not have the ability to speed up flights to meet the scheduled arrival time. Hence, if we were to set the deviation from the scheduled arrival time as an objective, it would be more appropriate to apply optimization algorithms that can both slow down and speed up flights. While such algorithms will be considered in future work, it is beyond the scope of this paper. Furthermore, ground delays are not an appropriate measure of benefits as passengers are less concerned about leaving late as long as they arrive at their destination on time. We do not go into detail on fuel analysis as this is also beyond the scope of the paper, and requires significantly more material to cover the nuances of the different levels of fuel consumption based on the phase of flight, velocity, altitude etc. While our analysis is centered around the airborne savings realized, we still report the other values when appropriate to provide context on how the other values change, relative to the airborne savings achieved.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comparison Table For All at R0 Regime Vs All at R1 Regime}
+  \begin{adjustwidth}{-2.6cm}{}
+    \begin{tabular}{@{}m{1cm}m{2cm}m{1.3cm}m{1cm}m{1cm}m{1.2cm}m{1.2cm}m{1.3cm}m{1.3cm}m{1.8cm}m{1.8cm}@{}}
+    \toprule \toprule
+    Day & Capacity & {No. of Matching Flights} & {Avg. Flight Time (R0)} & {Avg. Flight Time (R1)} & {Avg. Arrival Delay (R0)} & {Avg. Arrival Delay (R1)} & {Avg. Ground Delay (R0)} & {Avg. Ground Delay (R1)} & {Avg. Fuel (R0)} & {Avg. Fuel (R1)} \\
+    \midrule \midrule
+1 Oct & Base Case & 8793  & 147.07 & 146.54 & 5.73  & 6.02  & 2.69  & 3.50  & 8863.10 & 8845.61 \\
+    1 Oct & Reduced Case & 8754  & 154.90 & 153.24 & 18.49 & 19.62 & 7.88  & 10.67 & 9175.12 & 9119.00 \\
+    \midrule
+    2 Oct & Base Case & 8547  & 152.74 & 152.21 & 4.29  & 4.44  & 2.14  & 2.83  & 9636.69 & 9618.34 \\
+    2 Oct & Reduced Case & 8509  & 158.94 & 157.54 & 14.52 & 15.49 & 6.43  & 8.80  & 9885.90 & 9838.28 \\
+    \midrule
+    3 Oct & Base Case & 8471  & 153.37 & 152.88 & 4.63  & 4.86  & 2.21  & 2.94  & 9680.97 & 9663.51 \\
+    3 Oct & Reduced Case & 8438  & 159.91 & 158.54 & 15.15 & 15.93 & 6.47  & 8.62  & 9945.82 & 9898.91 \\
+    \midrule
+    4 Oct & Base Case & 8644  & 153.34 & 152.76 & 5.86  & 6.07  & 2.71  & 3.50  & 9633.08 & 9612.10 \\
+    4 Oct & Reduced Case & 8609  & 160.82 & 159.23 & 18.08 & 18.94 & 7.64  & 10.08 & 9927.21 & 9872.31 \\
+    \midrule
+    5 Oct & Base Case & 8697  & 154.75 & 154.25 & 5.68  & 5.93  & 2.48  & 3.23  & 9740.68 & 9722.71 \\
+    5 Oct & Reduced Case & 8664  & 162.89 & 161.18 & 18.68 & 19.47 & 7.62  & 10.12 & 10070.25 & 10010.70 \\
+    \midrule
+    6 Oct & Base Case & 8896  & 152.90 & 152.30 & 6.63  & 6.77  & 2.93  & 3.67  & 9540.95 & 9519.81 \\
+    6 Oct & Reduced Case & 8860  & 160.60 & 159.00 & 19.12 & 19.99 & 8.03  & 10.50 & 9850.79 & 9795.89 \\
+    \midrule
+    7 Oct & Base Case & 8715  & 154.53 & 154.02 & 5.18  & 5.39  & 2.37  & 3.10  & 9747.83 & 9730.45 \\
+    7 Oct & Reduced Case & 8671  & 162.20 & 160.52 & 17.51 & 18.32 & 7.31  & 9.80  & 10051.89 & 9994.18 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:r0vsr1}%
+  \end{adjustwidth}
+\end{table}%
+
+Using the results from Table \ref{tab:r0vsr1}, we plot the total airborne and fuel savings in Figure \ref{fig:r0vsr1savings}, and the total increase in ground and arrival delay in Figure \ref{fig:r0vsr1delays}. We first discuss the results in Figure \ref{fig:r0vsr1savings}. We see that in both plots, and both capacity cases, the graphs all lie above the x-axis, representing a consistent airborne and fuel savings across all days and capacity scenarios, again highlighting that the information sharing and GDPs under FF-ICE R1 are effective policies at optimizing the airspace network. Next, we see that under FF-ICE R1, the reduced capacity case has a wider range of values across the week of data, and approximately three times the savings as compared to the base case. This aligns with our earlier conjecture that the savings would be proportional to the congestion, as more congestion leads to more GDPs being assigned, leading to an increase of savings. Additionally, since more GDPs are triggered, an increase in the variance was also observed, with the increase proportionate to the increase in absolute values. From the figure, we see that the increase in the range and interquartile range between the base and reduced capacity case, is roughly three times, on par with the increase in total savings under FF-ICE R1. Additionally, the graphs for total airborne savings and total fuel savings are nearly identical, as expected, since no specific provisions were made to minimize fuel consumption, and fuel usage is assumed to be directly proportional to airborne time.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/r0vsr1savings.pdf}
+    \caption{Total Airborne and Fuel Savings Under R1, Split by Base and Reduced Capacity Scenario}
+    \label{fig:r0vsr1savings}
+\end{figure}
+
+We also provide the histogram of the flight time savings for the seven days of simulated flights in Figure \ref{fig:r0vsr1savingsdist}. For this analysis, we consider only flights that had airborne savings or losses of over 5 minutes. The number of flights under the base and reduced capacity scenarios for the 7 simulated days are 60763 and 60505 respectively. Although the average flight savings under the base and reduced capacity case in Table \ref{tab:r0vsr1} are approximately 0.5 and 1.5 minutes respectively, Figure \ref{fig:r0vsr1savingsdist} highlights that there are a significant number of flights that are able to save more than 5 minutes of flight time. In particular, the mean preferred flight time for the flights that experienced airborne savings of over 5 minutes under the base and reduced case is 90.34 and 93.87 respectively. This number is significantly lower than the preferred flight time in Table \ref{tab:r0vsr1}, given that the long distance flights outside the ASEAN Plus region would not have participated in the FF-ICE R1 regime. Using the formula \[
+\text{Mean \% Deviation} \;=\; \frac{100}{n} \sum_{i=1}^n \frac{\lvert savings_i - preferred\_time_i \rvert}{preferred\_time_i},
+\]
+we find the percentage savings for the flights with more than 5 minutes of airborne savings for the base and reduced capacity to be 12.3\% and 17.4\% respectively, indicating the substantial benefits that can be achieved through collaboration.
+
+Additionally, we see in Figure \ref{fig:r0vsr1savingsdist} that the number of flights experiencing savings of more than 5 minutes is significantly larger under the reduced capacity case, supporting our hypothesis that a greater mismatch in demand and capacity would lead to greater savings under the FF-ICE R1 regime. The results also demonstrate that under the base capacity case, the number of flights with significant savings sharply decline after the 10 minute mark. In contrast, under the reduced we see that the savings taper off more slowly, indicating that there is a lower variation in the distribution of flight savings. We verify this observation by computing the coefficient of variation $CV=\frac{\mu}{\sigma}$, as 4.04 and 3.80 for the base and reduced capacity case respectively.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/distribution savings.pdf}
+    \caption{Distribution of Airborne Savings Under R1, Split by Base and Reduced Capacity Scenario, Only Flights With Deviations of More Than 5 Minutes}
+    \label{fig:r0vsr1savingsdist}
+\end{figure}
+
+Next, in Figure \ref{fig:r0vsr1delays}, only the total increase in ground and arrival delays are considered, giving a high level overview of the increase in frequency and magnitude of the delays. Here, the difference in the ground delay and arrival delay corresponds to airborne savings, which is visually represented in the figure as the difference between the two plots (either between the first and second boxplots, or between the third and fourth boxplots). This observation aligns our earlier analysis, where the height difference in the reduced case is approximately three times greater than in the base case. Similarly, the variance appears proportional to the absolute values, deduced from the proportionality of the interquartile range of the box plots to their value on the y-axis. A significant increase in ground delays under both the base (leftmost box plot) and reduced capacity (third box plot) scenarios suggests that a greater mismatch between capacity and demand results in a proportional increase in GDP requests. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/r0vsr1delays.pdf}
+    \caption{Total Increase in Ground Delay and Airborne Delay Under R1, Split by Base and Reduced Capacity Scenario}
+    \label{fig:r0vsr1delays}
+\end{figure}
+
+While the results indicate that increased implementation of GDPs contributes to greater airborne and fuel savings, a consequential trade-off that cannot be overlooked is the associated rise in workload for ATC officers. Given that a significant portion of ATC workload is still handled manually, advancing the automation of ATC tasks should be considered a parallel priority. Another side effect of information sharing and collaborative GDPs are the increase in arrival delays. Under both the base and reduced capacity case, we observe a positive increase in arrival delays, represented by the boxplots lying above the x-axis. This underscores the challenge of initiating GDPs, reserving future capacity, and allowing flights to fly at their preferred speed from the origin to destination airport. The problem is made even more complex under a rolling horizon update framework which models the uncertainty and decentralized nature of real-world airspace operations in the ASEAN Plus region. In contrast, we would expect lower arrival delays for algorithms that optimize a full day's schedule in a single run.
+
+We now discuss how the GDPs lead to airborne savings. Figure \ref{fig:gdpgood} depicts a particular flight, which under R1 experienced a reduction in airborne time. In the figure, the turquoise line represents the TTO for the R1 case, and the red line represents the TTO for the R0 case. The blue dashed line represents the flight trajectory under the perfect case with no delays, where the flight traverses its entire flight path at its preferred speed. We notice that in both the R0 and R1 simulation, the turquoise and red lines are parallel to the blue dashed line for most of the flight, indicating the flight is traveling at its preferred speed for the entire flight path, except at the last node "WIII", where it experienced a delay of approximately two minutes under R0. We also see that on the first leg, labeled "WSSS", the turquoise line lies above the red line, indicating that a ground delay of approximately two minutes was assigned to the flight under the FF-ICE R1 regime, mirroring the arrival delay under R0. Note that the red line above the blue dotted line in the figure indicates a ground delay due to congestion at the departure airport, and not a ground delay due to collaborative decision-making. In this example, the flight under R1, was able to maintain its preferred speed throughout the entire flight path, avoiding a delay at the destination airport "WIII", precisely because it was delayed at the origin airport, and landed within its reserved slot at the destination airport, reducing its airborne delay by approximately two minutes. Note that the vertical jump in the zoomed portion of Figure \ref{fig:gdpgood} is understood as the holding delay at the final approach node under R0. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/gdpgood.png}
+    \caption{Example of Ground Delay With No Arrival Delay}
+    \label{fig:gdpgood}
+\end{figure}
+
+% ==========================================================================================================================================
+\subsection{Incremental Adoption of the FF-ICE R1 Concept}
+\label{sub:incremental}
+The purpose of this research project was to develop tools and to investigate the benefits of information sharing and collaboration in the ASEAN region. It is not to be expected that all FIRs will advance to release level R1 in the near future. All Air Navigation Service Providers will need to examine the cost-benefit of infrastructure investments carefully before taking such steps. It is anticipated that the FIRs already engaged in the Distributed Multi-Nodal ATFM Project would be among the first to qualify their systems for R1. Consequently, we consider several different information regimes including the core set of Manila (RPHI), Hong Kong (VHHK), Bangkok (VTBB), and Singapore (WSJC). This set is extended to five FIRs with the addition of Kuala Lumpur (WMFC) and to six with Jakarta (WIIF). It is also assumed that a single country can benefit from implementing these methods without requiring international collaboration. For this reason, and by example, we consider two countries, Vietnam and Indonesia, implementing release level R1 independent of each other and of other countries. Including the base regime of 'All FIR at R0' and widest regime of 'All Internal FIR at R1', we consider a total of seven different information regimes. Table \ref{tab:tableInformationRegimes} lists the six of these regimes with at least one FIR at level R1. In all cases we exclude FIRs that are external to this set of 14 FIRs from operating at level R1. Our model would not be realistic for such an extension. There are many more combinations of collaborating FIRs which could be considered. However, the results of this paper should be sufficient to set expectations as to the level of airborne savings possible in these other combinations.
+
+We reiterate that CTOTs and FSFS scheduling rules apply only to R1-level flights: flights for which both origin and destination airports at at release level R1.  For two scenarios, Vietnam Alone at R1 and Indonesia Alone at R1, this restricts R1-level flights to domestic flights within those two countries.
+
+\begin{table}
+\begin{center}
+\resizebox{14cm}{!}{
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\toprule
+\text{ICAO} &\text{Region} & \text{Vietnam} & \text{Indonesia } &\text{Four FIRs} & \text{Five FIRs} & \text{Six FIRs} & \text{All Internal}\\
+\text{FIRs} &\text{Name} &\text{Alone at R1} & \text{Alone at R1} & \text{at R1} &  \text{at R1} & \text{at R1} & \text{FIRs at R1} \\
+\cmidrule{1-8}
+ \text{External} & \text{} & \text{} & \text{} & \text{} & \text{}&  \text{}& \text{} \\
+\cmidrule{1-8}
+ \text{RPHI} & \text{Manila} & \text{} & \text{} & \text{R1} & \text{R1}&  \text{R1}& \text{R1} \\
+\cmidrule{1-8}
+ \text{VDPP} & \text{Phnom Penh} & \text{} & \text{} & \text{} & \text{}&  \text{}& \text{R1} \\
+\cmidrule{1-8}
+ \text{VHHK} & \text{Hong Kong} & \text{} & \text{} & \text{R1} & \text{R1}&  \text{R1}& \text{R1} \\
+\cmidrule{1-8}
+ \text{VLVT} & \text{Vientiane} & \text{} & \text{} & \text{} & \text{}&  \text{}& \text{R1} \\
+\cmidrule{1-8}
+ \text{VTBB} & \text{Bangkok} & \text{} & \text{} & \text{R1} & \text{R1}&  \text{R1}& \text{R1} \\
+\cmidrule{1-8}
+ \text{VVTS} & \text{Ho Chi Minh} & \text{R1} & \text{} & \text{} & \text{}&  \text{}& \text{R1} \\
+\cmidrule{1-8}
+ \text{VVVV} & \text{Hanoi} & \text{R1} & \text{} & \text{} & \text{}&  \text{}& \text{R1} \\
+\cmidrule{1-8}
+ \text{VYYF} & \text{Yangon} & \text{} & \text{} & \text{} & \text{}&  \text{}& \text{R1} \\
+\cmidrule{1-8}
+ \text{WAAF} &  \text{Ujung Pandang} &\text{} & \text{R1} & \text{} & \text{}&  \text{}& \text{R1} \\
+\cmidrule{1-8}
+ \text{WBFC} & \text{Kota Kinabalu} & \text{} & \text{} & \text{} & \text{}&  \text{}& \text{R1} \\
+\cmidrule{1-8}
+ \text{WIIF} & \text{Jakarta} & \text{} & \text{R1} & \text{} & \text{}&  \text{R1}& \text{R1} \\
+\cmidrule{1-8}
+ \text{WMFC} & \text{Kuala Lumpur} & \text{} & \text{} & \text{} & \text{R1}&  \text{R1}& \text{R1} \\
+\cmidrule{1-8}
+ \text{WSJC} & \text{Singapore} & \text{} & \text{} & \text{R1} & \text{R1}&  \text{R1}& \text{R1} \\
+\cmidrule{1-8}
+ \text{ZJSA} & \text{Sanya} & \text{} & \text{} & \text{} & \text{}&  \text{}& \text{R1} \\
+\bottomrule
+\end{tabular}}
+\end{center}
+\caption{Alternative information regimes considered in addition to base case regime (All FIR at R0)}
+\label{tab:tableInformationRegimes}
+\end{table}
+
+Table \ref{tab:allregimesbase} display the simulated savings in airborne time under the base capacity case, comparing the case where all FIRs are at FF-ICE R0, against each of the six information sharing regimes. The results are sorted by \textit{Day}, and subsequently by \textit{Total Flight Time Difference}. A consistent trend across all days is that having all internal FIRs at R1 provides the largest flight time savings, and Vietnam alone at R1 provides the smallest flight time savings. This can be attributed to the significantly larger percentage of flights participating in information sharing and collaboration when all FIRs are at R1. We also observe that across all simulated days, the overall airspace network benefits are proportional to the number of FIRs participating in the FF-ICE R1 program, with benefits in decreasing order, six FIRs at R1, five FIRs at R1, and four FIRs at R1. Interestingly, Indonesia alone at R1 achieves even greater savings than six FIRs at R1 about half the time. We hypothesize that this is due to that Indonesia possessing a great many small airports, which leads to a large number of collaborating airports, and by extension, collaborating flights. Given that the model assumes that every airport in the R1 regions will participate in collaborative delay programs, it appears to just require collaboration within a single country on the surface. However, it is likely that the investment to engage all of them to the same level of participation would be substantial in practice.
+
+\begin{table}[htbp]
+  \centering
+  \begin{adjustwidth}{-1.2cm}{}
+  \caption{Comparison Table For Various Information Regimes, For 1 Oct 2023 to 7 Oct 2023, for the Base Capacity Case}
+    \begin{tabular}{@{}m{1cm}m{3.8cm}m{2.4cm}m{2cm}m{2cm}m{3cm}@{}}
+    \toprule \toprule
+    Day   & Regime & No. of Matching Flights & Avg. Flight Time (R0) & Avg. Flight Time (R1) & Total Flight Time Difference \\
+    \midrule \midrule
+    1 Oct & All Internal FIRs at R1 & 8793  & 147.07 & 146.54 & 4601.23 \\
+    1 Oct & Six FIRs at R1 & 8796  & 147.04 & 146.79 & 2261.03 \\
+    1 Oct & Indonesia Alone at R1 & 8794  & 147.06 & 146.85 & 1847.10 \\
+    1 Oct & Five FIRs at R1 & 8796  & 147.04 & 146.87 & 1506.60 \\
+    1 Oct & Four FIRs at R1 & 8796  & 147.04 & 146.92 & 1068.02 \\
+    1 Oct & Vietnam Alone at R1 & 8795  & 147.05 & 147.00 & 384.75 \\
+    \midrule
+    2 Oct & All Internal FIRs at R1 & 8547  & 152.74 & 152.21 & 4547.02 \\
+    2 Oct & Indonesia Alone at R1 & 8549  & 152.72 & 152.49 & 1962.70 \\
+    2 Oct & Six FIRs at R1 & 8548  & 152.73 & 152.50 & 1923.60 \\
+    2 Oct & Five FIRs at R1 & 8549  & 152.72 & 152.59 & 1074.98 \\
+    2 Oct & Four FIRs at R1 & 8549  & 152.72 & 152.61 & 908.70 \\
+    2 Oct & Vietnam Alone at R1 & 8550  & 152.71 & 152.67 & 360.67 \\
+    \midrule
+    3 Oct & All Internal FIRs at R1 & 8471  & 153.37 & 152.88 & 4198.50 \\
+    3 Oct & Six FIRs at R1 & 8475  & 153.34 & 153.10 & 1996.75 \\
+    3 Oct & Indonesia Alone at R1 & 8472  & 153.36 & 153.13 & 1993.78 \\
+    3 Oct & Five FIRs at R1 & 8475  & 153.34 & 153.19 & 1281.57 \\
+    3 Oct & Four FIRs at R1 & 8475  & 153.34 & 153.21 & 1055.62 \\
+    3 Oct & Vietnam Alone at R1 & 8474  & 153.35 & 153.32 & 228.65 \\
+    \midrule
+    4 Oct & All Internal FIRs at R1 & 8644  & 153.34 & 152.76 & 5032.03 \\
+    4 Oct & Indonesia Alone at R1 & 8646  & 153.32 & 153.05 & 2264.75 \\
+    4 Oct & Six FIRs at R1 & 8649  & 153.29 & 153.03 & 2220.17 \\
+    4 Oct & Five FIRs at R1 & 8650  & 153.28 & 153.14 & 1224.58 \\
+    4 Oct & Four FIRs at R1 & 8650  & 153.28 & 153.14 & 1151.00 \\
+    4 Oct & Vietnam Alone at R1 & 8651  & 153.27 & 153.23 & 327.10 \\
+    \midrule
+    5 Oct & All Internal FIRs at R1 & 8697  & 154.75 & 154.25 & 4311.50 \\
+    5 Oct & Indonesia Alone at R1 & 8700  & 154.72 & 154.47 & 2211.05 \\
+    5 Oct & Six FIRs at R1 & 8701  & 154.71 & 154.48 & 2005.28 \\
+    5 Oct & Five FIRs at R1 & 8702  & 154.70 & 154.56 & 1239.02 \\
+    5 Oct & Four FIRs at R1 & 8702  & 154.70 & 154.59 & 1012.63 \\
+    5 Oct & Vietnam Alone at R1 & 8701  & 154.71 & 154.67 & 334.52 \\
+    \midrule
+    6 Oct & All Internal FIRs at R1 & 8896  & 152.90 & 152.30 & 5342.90 \\
+    6 Oct & Six FIRs at R1 & 8900  & 152.86 & 152.60 & 2317.63 \\
+    6 Oct & Indonesia Alone at R1 & 8899  & 152.87 & 152.63 & 2183.65 \\
+    6 Oct & Five FIRs at R1 & 8900  & 152.86 & 152.69 & 1480.28 \\
+    6 Oct & Four FIRs at R1 & 8900  & 152.86 & 152.73 & 1177.93 \\
+    6 Oct & Vietnam Alone at R1 & 8902  & 152.84 & 152.74 & 877.50 \\
+    \midrule
+    7 Oct & All Internal FIRs at R1 & 8715  & 154.53 & 154.02 & 4479.33 \\
+    7 Oct & Six FIRs at R1 & 8718  & 154.51 & 154.26 & 2178.67 \\
+    7 Oct & Indonesia Alone at R1 & 8716  & 154.53 & 154.30 & 1999.25 \\
+    7 Oct & Five FIRs at R1 & 8718  & 154.51 & 154.36 & 1320.13 \\
+    7 Oct & Four FIRs at R1 & 8718  & 154.51 & 154.41 & 899.23 \\
+    7 Oct & Vietnam Alone at R1 & 8718  & 154.50 & 154.48 & 176.10 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:allregimesbase}%
+  \end{adjustwidth}
+\end{table}%
+
+We consolidate these results for the base capacity case in Figures \ref{fig:savingsgroupFIRbase1} and \ref{fig:savingsgroupFIRbase2}. In Figure \ref{fig:savingsgroupFIRbase1}, similar to the findings in Section \ref{sub:allR1}, we observe that the variance is proportional to the absolute value of total savings. We also see that savings for six FIR and Indonesia alone at R1 is almost identical, except that the median for six FIRs at R1 is higher, indicating the average airborne savings is higher for the six FIRs at R1 information regime. Next, in Figure \ref{fig:savingsgroupFIRbase2}, we plot the sum of savings for the entire week. While it is clear that having all FIRs at R1 yields the greatest airborne savings,the results also show significant savings under FF-ICE R1 even for a single country, or multiple FIRs. For example, Indonesia alone yields 44\% of the savings that is achieved by having all FIRs at R1 and having four FIRs at R1 yields 22\% of the savings that is achieved by having all FIRs at R1. This is a significant first step in demonstrating the value of information sharing and collaborative measures, even under the pretext of incremental participation.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/savingsgroupFIRbase1.pdf}
+    \caption{Airborne Savings By Regime Under the Base Capacity Case}
+    \label{fig:savingsgroupFIRbase1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/savingsgroupFIRbase2.pdf}
+    \caption{Sum of Airborne Savings By Regime Under the Base Capacity Case}
+    \label{fig:savingsgroupFIRbase2}
+\end{figure}
+
+The same analysis is performed for the reduced capacity case, and the results are plotted in Figures \ref{fig:savingsgroupFIRred1} and \ref{fig:savingsgroupFIRred2}. For brevity and to avoid duplication, the detailed comparison table is omitted. The trends in the results reported for the reduced capacity case are similar to the base capacity case. For example Indonesia alone at R1 and four FIRs at R1 yields 43\% and 29\% of the savings that is achieved by having all FIRs at R1. This increase in percentage yield of the four FIRs at R1 regime, which includes the RPLL airport in Manila, may be due to the large number of time periods which experience congestion. This is evidenced by the gigantic frequency bubbles pushing against the capacity envelope at RPLL airport in Figure \ref{fig:CapacityEnvelopesReducedCase}, suggesting that a larger number of ground delays would have been initiated at RPLL or its collaborating airport pairs, therefore leading to greater airborne savings.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/savingsgroupFIRred1.pdf}
+    \caption{Airborne Savings By Regime Under the Reduced Capacity Case}
+    \label{fig:savingsgroupFIRred1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/savingsgroupFIRred2.pdf}
+    \caption{Sum of Airborne Savings By Regime Under the Reduced Capacity Case}
+    \label{fig:savingsgroupFIRred2}
+\end{figure}
+
+We extend the argument that given the large number of airports, it is likely that even within an FIR, only particular airports will be chosen to invest resources and upgrade current systems and practices to adopt the FF-ICE R1 initiative. Our hypothesis is that even with collaboration between only two airports, there are savings to be made. To investigate this conjecture, we further restrict information sharing and collaborative GDPs to occur between flights with a particular origin-destination pair. Table \ref{tab:apcollab} presents the results for collaboration between airports in multiple cities, paired with WSSS Singapore Changi Airport. Here, we begin to observe mixed results, with information sharing and collaborative decision-making leading to a net delay at VHHH in the base capacity case, and both VHHH and WIII in the reduced capacity case. This indicates that under very limited collaboration, there exists the possibility that minor GDP assignments could disrupt the flight schedules of non-collaborating flights, rendering the net impact of GDPs to be indeterminate. We plot the total flight time difference against number of GDP flights in Figure \ref{fig:appairsgdp}. Apart from the anomalous point at 45 GDP flights, all other points appear to follow a clear trend, with the flight savings increasing in tandem with the number of GDP flights, corroborating our previous findings. There appears to be a threshold number of flights, at approximately 15, where any fewer than this number of flights would lead to a net increase in delay, albeit small. These results suggest that meaningful savings under the FF-ICE R1 initiative depend on achieving a critical level of collaboration.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comparison Table For Various Airport Pair Collaborations With WSSS Singapore Using 1 Oct 2023 Flight Plans}
+    \begin{tabular}{@{}m{3cm}m{4cm}m{2.4cm}m{3cm}@{}}
+    \toprule \toprule
+    Capacity & Airport Pair & No. of GDP Flights & Total Flight Time Difference (s)\\
+    \midrule \midrule
+    Base Case & VTBS Bangkok & 26    & 99.60 \\
+    Base Case & WMKK Kuala Lumpur & 56    & 144.65 \\
+    Base Case & RPLL Manila & 15    & 11.08 \\
+    Base Case & VHHH Hong Kong & 12    & -42.93 \\
+    Base Case & WIII Jakarta & 40    & 64.98 \\
+    Reduced Case & VTBS Bangkok & 28    & 103.17 \\
+    Reduced Case & WMKK Kuala Lumpur & 71    & 225.22 \\
+    Reduced Case & RPLL Manila & 21    & 46.32 \\
+    Reduced Case & VHHH Hong Kong & 12    & -21.25 \\
+    Reduced Case & WIII Jakarta & 45    & -79.37 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:apcollab}%
+\end{table}%
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/appairsgdp.pdf}
+    \caption{Total Flight Time Difference Between All R0 and Airport Pairs Collaboration Plotted With Data From Table \ref{tab:apcollab}}
+    \label{fig:appairsgdp}
+\end{figure}
+
+% ==========================================================================================================================================
+\subsection{Identifying Sources of Savings and Delays Under FF-ICE R1}
+A natural question to ask at this point is where do the savings come from in general. This requires a deeper dive into the simulation results. Figure \ref{fig:histogramairbornebase} presents the results for the total airborne savings, aggregated over each hour of the day, for the flights occurring on 1 Oct 2023. The stacked bars represent the airborne savings of which the \textit{Airport Group} experienced, computed over all of its arrival flights. We see that in general, the height of the bars are proportional to the total number of flights at each time period. Interestingly, the top six major airports, represented by colored bars except for the purple non-hub airport bar, contributed to only a small percentage of the airborne savings, of about 25\% or less, when compared to all other non-hub airports. This demonstrates that savings are distributed across many smaller airports, highlighting the value of collaboration even at less busy locations. We also notice that some airports as a whole experience small amounts of additional delay, such as RPLL at hours 9 and 10. This is likely due to the scheduling of flights to different channels under R0 and R1, where a number of departure flights utilized the mixed channel capacity, reducing the capacity for arrival flights, ultimately leading to arrival delays. Additionally, having too few GDP flights leading to an overall net increase in delays, was observed at hours 18 and 19, where the number of flights was at its lowest. This phenomenon was similarly observed earlier, in Section \ref{sub:incremental}. 
+
+In Figure \ref{fig:histogramairbornered}, which presents the same histogram for the reduced capacity case, we see that the problems encountered in the base capacity case have been resolved. RPLL (the second highest stacked bar) no longer experience additional delays at hours 9 and 10, and in contrast, benefited from a significant amount of airborne savings. We recall from the capacity envelopes in Figure \ref{fig:CapacityEnvelopesReducedCase}, that RPLL was highly congested under the reduced capacity case, and this result reinforces our premise that airborne savings are proportional to the congestion experienced. We also see that at hours 18 and 19, despite the limited flight activity during the period, successful collaborative measures were carried out in the airspace network and airborne savings were achieved instead. We also notice that the top six major airports contributed to a significantly larger percentage of airborne savings, which again may be attributed to the top six airports operating at close to maximum capacity and hence were more active with the assignment of ground delays.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/histogramairbornebase.pdf}
+    \caption{Airborne Flight Savings Per Hour Under the Base Capacity Case, Highlighting the Savings by the Top Six Airports (Ranked by Number of Inbound Flights)}
+    \label{fig:histogramairbornebase}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/histogramairbornered.pdf}
+    \caption{Airborne Flight Savings Per Hour Under the Reduced Capacity Case, Highlighting the Savings by the Top Six Airports (Ranked by Number of Inbound Flights)}
+    \label{fig:histogramairbornered}
+\end{figure}
+
+% here look at airport maps
+Next, we look at the savings and delays by airport pairs. Figure \ref{fig:r1allmap} displays screenshots from our analysis tool which summarize the simulated arrival data for each selected airport, overlaid across the world map. The maps display the city pairs with the greatest savings in green or delays in red. We only plot lines for the city pairs whose sum of absolute flight time difference is greater than mean absolute flight time difference for all city pairs. What is interesting in these maps is the revelation that many of the significant savings or delays occur with airports outside the ASEAN plus region, indicated by the numerous plotted lines that leave the region. This raises a discussion point on how long-haul flights are to be treated when implementing regional collaborative measures. By assuming all external FIR are at level R0, we are clearly simulating a system where such long-haul flights could be disadvantaged when approaching a congested airport relative to delayed flights from regional airports. On the other hand, we also observe many green lines spanning outside of the ASEAN Plus Region in Figure \ref{fig:r1allmap}, so such long-haul flights are not universally disadvantaged. By delaying some regional flights it is possible that a long-haul flight serendipitously can have its airborne time reduced, either due to the change in airport channel assignment, or because ground delayed R1 flights result in the long-haul flight being reassigned earlier in sequence.
+
+We also include Figure \ref{fig:r1vietmap} which depicts savings and delays for two main airports in Vietnam under the Vietnam alone at R1 information regime. It is clear that the biggest savings come from domestic flights within Vietnam. This highlights the potential for information sharing and collaboration within a single country alone to be beneficial for the participants. However this may come at a cost of disruptive delays to flights coming from other regions. In the right map plot for VVNB, flights coming from Bangkok, Hong Kong and Tokyo experienced greater delays when airports in Vietnam participate in the FF-ICE program. This again raises the question on how international flights should be treated, highlighting another point for countries to consider for the implementation of FF-ICE R1.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/r1allmap.png}
+    \caption{Map of Airport Pairs with Significant Airborne Savings in Green and Significant Airborne Delays in Red, for VTBS Bangkok and WSSS Singapore Under All R1, Base Capacity Case, 1 Oct 2023}
+    \label{fig:r1allmap}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/r1vietmap.png}
+    \caption{Map of Airport Pairs with Significant Airborne Savings in Green and Significant Airborne Delays in Red, for VVDN Da Nang and VVNB Hanoi Under All R1, Base Capacity Case, 1 Oct 2023}
+    \label{fig:r1vietmap}
+\end{figure}
+
+% here talk about gdp and near gdp
+Next, we zoom into the savings or delays generated by either GDP and non-GDP flights and identify the savings under limited information sharing and collaborative decision-making between a single airport pair. A flight is determined to be a GDP flight if it was assigned a GDP in the partial R1 scheme between airport pairs. Using the flight ids of these GDP flights, any non-GDP flight that departed or arrived within 1800 seconds (30 minutes) of a GDP flight, either in the R0 or partial R1 simulation is considered a \textit{non-GDP flight within 1800 seconds of GDP flights}. All other non-GDP flights are denoted \textit{non-GDP flights outside 1800 seconds of GDP flights}. We again focus on the same airport collaboration pairs as in Section \ref{sub:incremental}, as these are the airports that are among the most active within the ASEAN Plus region. In both Figures \ref{fig:gdpisolatebase1800} and \ref{fig:gdpisolatered1800}, the green bar representing only GDP flights, is always positive. This indicates that, under all scenarios, flights subject to ground delay programs almost invariably achieve airborne savings, even when collaboration is limited to just two airports within the airspace network. A surprising observation for the base capacity case, is the minimal impact to non-GDP flights within 1800 seconds of any GDP flights (denoted by the purple bars), but a significant impact on non-GDP flights that are not close to any GDP flight (denoted by turquoise bars). We expect that flights that are distant from GDP flights to not be impacted, and flights close to GDP flights to experience a greater impact, however, the results suggest otherwise under the base capacity case, and at WMKK under the reduced capacity case. 
+
+Further inspection of the results reveal an interesting phenomenon --- flights that are not close to any GDP flights at either of the collaborating airports, namely WSSS and WMKK, nor have WSSS or WMKK as its origin or destination airport, are severely impacted by the WSSS-WMKK collaboration. The results supporting this statement is presented in Table \ref{tab:WSSSWMKK}. Such a phenomenon occurs because conflicts between GDP flights have the potential to come into conflict with flights between other regions, and cause minor enroute delays. These flights between other regions are unable to conduct their own GDPs to avoid conflict, and hence simply absorb the savings or delays at the arrival airport, leading to significant savings or delays as a whole, despite not participating in the FF-ICE R1 program. A particular case where this occurs in our simulations is given in Figure \ref{fig:ripple1}. In Figure \ref{fig:ripple1}, the graph on the left and right represent the flight legs and their corresponding TTOs at waypoint CON, a waypoint close to Hong Kong, under the all R0 regime and WSSS-WMKK regime. We notice, that even at a distant waypoint CON, the arrangement of the bars are different, highlighting the ripple effects of collaborative GDPs between WSSS (Singapore) and WMKK (Kuala Lumpur). Aggregated at the network level, these perturbations yield a noticeable difference in flight schedules, even for flights that are not participating in the FF-ICE R1 program. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/ripple conjecture 1.png}
+    \caption{Flight Trajectory Graph, Waypoint CON Only, For All R0 Regime (Left) and WSSS-WMKK Collaboration (Right)}
+    \label{fig:ripple1}
+\end{figure}
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width = \textwidth]{Figures/ripple conjecture 2.png}
+%     \caption{TTO vs Scheduled R0TTO Graph, Waypoint POU and CON Only}
+%     \label{fig:ripple2}
+% \end{figure}
+
+
+
+From the results in Table \ref{tab:WSSSWIII}, a similar conclusion can be reached for non-GDP flights within 1800 seconds of GDP flights, except that most savings or delays occur at the collaborating airports WSSS and WIII. Here, most of savings or delays are caused by the rescheduling due to newly generated conflicts at the collaborating airports rather than at the waypoints traversed by GDP flights. 
+
+As demonstrated in Section \ref{sub:incremental}, a threshold number of GDP flights is often required before net positive airborne savings are observed. For instances of severely limited collaboration, such as that between two airports, due to the highly complex and interconnected nature of the global airspace, managing the broader impacts on other flights raises a key concern for stakeholders. The results show the two airports consistently will enjoy airborne savings, with even greater savings under the reduced capacity case. However, the overall impact on the wider airspace network remains limited and inconsistent when only two airports participate in the FF-ICE R1 program. This inconsistency is particularly pronounced in the reduced capacity case, where increased congestion leads to a higher likelihood of conflicts at waypoints or airport nodes, driven by the chain effects of the localized GDP measures.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/gdpisolatebase1800.pdf}
+    \caption{Comparison of Various Airport Pair Collaborations With WSSS Singapore. Barplot of Flights Grouped by Time From GDP Flights, Base Capacity Case, 1 Oct 2023}
+    \label{fig:gdpisolatebase1800}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width = \textwidth]{Figures/gdpisolatered1800.pdf}
+    \caption{Comparison of Various Airport Pair Collaborations With WSSS Singapore. Barplot of Flights Grouped by Time From GDP Flights, Reduced Capacity Case, 1 Oct 2023}
+    \label{fig:gdpisolatered1800}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Top Airport Pairs by Sum of Absolute Flight Time Difference for Flights Outside 1800 seconds of GDP Flights Under the WSSS-WMKK Collaboration Scheme Base Capacity Case}
+    \begin{tabular}{@{}m{4cm}cm{3cm}@{}}
+    \toprule \toprule
+    Airport Pair & Sum of Absolute Flight Time Difference\\
+    \midrule \midrule
+    ZGHA-ZJSY & 24.43 \\
+    ZBAA-ZJSY & 21.17 \\
+    ZGSZ-ZJSY & 20.68 \\
+    VTBD-VTSP & 17.20 \\
+    ZGGG-ZJSY & 16.27 \\
+    RCTP-VMMC & 15.95 \\
+    ZJSY-ZSPD & 15.07 \\
+    RKSI-VTBS & 14.20 \\
+    VTBD-VTCC & 12.95 \\
+    VHHH-VTBS & 12.80 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:WSSSWMKK}%
+\end{table}%
+
+\begin{table}[htbp]
+  \centering
+  \caption{Top Airport Pairs by Sum of Absolute Flight Time Difference for Flights Within 1800 seconds of GDP Flights Under the WSSS-WIII Collaboration Scheme Reduced Capacity Case}
+    \begin{tabular}{@{}m{4cm}cm{3cm}@{}}
+    \toprule \toprule
+    Airport Pair & Sum of Absolute Flight Time Difference\\
+    \midrule \midrule
+    WAAA-WIII & 50.02 \\
+    WADD-WIII & 49.93 \\
+    WIII-WIMM & 46.27 \\
+    WAHI-WIII & 29.20 \\
+    WARR-WIII & 28.60 \\
+    WMKP-WSSS & 25.82 \\
+    WIII-WMKK & 22.38 \\
+    VTBS-WSSS & 18.23 \\
+    WADD-WSSS & 17.63 \\
+    WIEE-WIII & 13.12 \\
+    \bottomrule \bottomrule
+    \end{tabular}%
+  \label{tab:WSSSWIII}%
+\end{table}%
+
+The purpose of this chapter was to measure the potential benefits in reduced airborne time that can come from implementing at least FF-ICE R1. Our results demonstrate that benefits exhibit the characteristics of network goods, highlighting the collective value of widespread adoption. Here a network good is defined as one where current users gain when additional users adopt the system, with classic examples such as the telephone and payment systems \parencite{Klemperer2008}.
+
+Accordingly, we have looked at different information regimes and demonstrated that the benefits increase with the number of airports participating and with the congestion levels they face, with GDPs selected as the primary procedure of collaborative decision-making. Our findings reveal a critical threshold for the number of participating flights, of at least 15, before net savings are realized. Crucially, the effectiveness of GDP programs increases more than proportionally under situations of reduced capacity, where a 20\% loss of capacity resulted in an increase in savings of over 200\%. We have also demonstrated that a single country can benefit from such investment, even in the absence of participation from other countries, primarily because collaboration within a single country, such as Indonesia or Vietnam, involves a sufficient number of flights to reliably achieve net savings across the entire ASEAN Plus airspace. Our results also demonstrate that regional collaborative ground delay programs must include some form of preferential treatment for delayed flights of which the First-Scheduled-First-Served priority rule for R1 level flights was implemented.
+
+Finally, our findings reveal a surprising result --- flights not participating in FF-ICE R1, even those with an origin-destination airport pair that is not at R1, are often impacted by the rescheduling of participating flights, particularly when they share a common node, either a waypoint or an airport node. Perhaps this is a limitation of our model, where we do not consider multiple flight levels at waypoints, potentially imposing unnecessary flow restrictions at waypoints that are not present in actual flight operations. Despite this, our findings highlight a key concern of how non-participating flights will be impacted by the FF-ICE R1 initiative, especially for long-haul flights, which often operate under differing airspace regulations and procedures.

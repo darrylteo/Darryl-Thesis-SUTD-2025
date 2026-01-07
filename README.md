@@ -1,5 +1,6 @@
 # Darryl's PhD Thesis SUTD
 Please view the thesis in the file _main.pdf_. The additional files, particularly the .tex files, may serve as a convenient basis to be referenced and reused. 
+Appendix C contains the system design and user interface of the final delivered software.
 
 ## Credits
 This template was adapted by Martin Ochoa based on a template downloaded from:

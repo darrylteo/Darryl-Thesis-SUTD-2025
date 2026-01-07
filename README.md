@@ -1,8 +1,5 @@
-# SUTD Thesis Template
-This template is for the LaTeX thesis (M.Sc. or PhD) for use at the Singapore University of Technology and Design (SUTD).
-
-## Improvements
-If you found any bugs or missing features that should be included, please feel free to raise an issue/PR.
+# Darryl's PhD Thesis SUTD
+Please view the thesis in the file _main.pdf_. The additional files, particularly the .tex files, may serve as a convenient basis to be referenced and reused. 
 
 ## Credits
 This template was adapted by Martin Ochoa based on a template downloaded from:
